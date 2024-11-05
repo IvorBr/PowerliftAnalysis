@@ -28,6 +28,29 @@ import com.google.mediapipe.tasks.vision.poselandmarker.PoseLandmarkerResult
 import kotlin.math.max
 import kotlin.math.min
 
+
+import kotlin.math.max
+import kotlin.math.min
+import kotlin.math.abs
+import kotlin.math.atan2
+import kotlin.math.PI
+
+fun calculateAngle(a: Pair<Float, Float>, b: Pair<Float, Float>, c: Pair<Float, Float>): Float {
+    // Convert points to angles
+    val angleAB = atan2(a.second - b.second, a.first - b.first)
+    val angleCB = atan2(c.second - b.second, c.first - b.first)
+
+    // Calculate angle in radians, then convert to degrees
+    var angle = abs((angleCB - angleAB) * 180.0 / PI.toFloat())
+
+    // Normalize angle to be within [0, 180]
+    if (angle > 180.0) {
+        angle = 360.0 - angle
+    }
+
+    return angle.toFloat()
+}
+
 class OverlayView(context: Context?, attrs: AttributeSet?) :
     View(context, attrs) {
 
@@ -65,6 +88,7 @@ class OverlayView(context: Context?, attrs: AttributeSet?) :
     override fun draw(canvas: Canvas) {
         super.draw(canvas)
         results?.let { poseLandmarkerResult ->
+
             for(landmark in poseLandmarkerResult.landmarks()) {
                 for(normalizedLandmark in landmark) {
                     canvas.drawPoint(
@@ -82,6 +106,79 @@ class OverlayView(context: Context?, attrs: AttributeSet?) :
                         poseLandmarkerResult.landmarks().get(0).get(it.end()).y() * imageHeight * scaleFactor,
                         linePaint)
                 }
+
+                val rightShoulder = Pair(
+                    poseLandmarkerResult.landmarks().get(0).get(12).x(),
+                    poseLandmarkerResult.landmarks().get(0).get(12).y())
+
+                val leftShoulder = Pair(
+                    poseLandmarkerResult.landmarks().get(0).get(13).x(),
+                    poseLandmarkerResult.landmarks().get(0).get(13).y()
+                )
+
+                val leftHip = Pair(
+                    poseLandmarkerResult.landmarks().get(0).get(24).x(),
+                    poseLandmarkerResult.landmarks().get(0).get(24).y()
+                )
+
+                val rightHip = Pair(
+                    poseLandmarkerResult.landmarks().get(0).get(23).x(),
+                    poseLandmarkerResult.landmarks().get(0).get(23).y()
+                )
+
+                val rightKnee = Pair(
+                    poseLandmarkerResult.landmarks().get(0).get(26).x(),
+                    poseLandmarkerResult.landmarks().get(0).get(26).y()
+                )
+
+                val leftKnee = Pair(
+                    poseLandmarkerResult.landmarks().get(0).get(25).x(),
+                    poseLandmarkerResult.landmarks().get(0).get(25).y()
+                )
+
+                val rightAnkle = Pair(
+                    poseLandmarkerResult.landmarks().get(0).get(28).x(),
+                    poseLandmarkerResult.landmarks().get(0).get(28).y()
+                )
+
+                val leftAnkle = Pair(
+                    poseLandmarkerResult.landmarks().get(0).get(27).x(),
+                    poseLandmarkerResult.landmarks().get(0).get(27).y()
+                )
+
+                // Calculate angles
+                val angleKnee = calculateAngle(rightHip, rightKnee, rightAnkle) // Right knee joint angle
+                val roundedKneeAngle = kotlin.math.round(angleKnee * 100) / 100 // Round to 2 decimal places
+                //angleMin.add(roundedKneeAngle)
+
+                val angleHip = calculateAngle(rightShoulder, rightHip, rightKnee) // Right hip joint angle
+                val roundedHipAngle = kotlin.math.round(angleHip * 100) / 100 // Round to 2 decimal places
+                //angleMinHip.add(roundedHipAngle)
+
+                // Compute complementary angles
+                val hipAngle = 180 - roundedHipAngle
+                val kneeAngle = 180 - roundedKneeAngle
+                // Calculate the midpoint for displaying the angle
+                val hipMidX = (rightHip.first + rightKnee.first) / 2 * imageWidth * scaleFactor
+                val hipMidY = (rightHip.second + rightKnee.second) / 2 * imageHeight * scaleFactor
+
+
+                if (hipAngle < 90){
+                    // do something
+                    println("SQUAT!")
+                }
+
+                val angleText = "Hip Angle: $roundedHipAngle°"
+                canvas.drawText(
+                    angleText,
+                    hipMidX,
+                    hipMidY,
+                    Paint().apply {
+                        color = Color.WHITE
+                        textSize = 50f
+                        style = Paint.Style.FILL
+                    }
+                )
             }
         }
     }
