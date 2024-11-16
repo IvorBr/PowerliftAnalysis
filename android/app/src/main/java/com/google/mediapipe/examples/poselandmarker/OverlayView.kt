@@ -62,6 +62,8 @@ class OverlayView(context: Context?, attrs: AttributeSet?) :
     private var imageWidth: Int = 1
     private var imageHeight: Int = 1
 
+    var selectedExercise: String = "Squat"
+
     private var succesfulLift: Int = 1
     private var liftCount: Int = 0
 
@@ -93,6 +95,7 @@ class OverlayView(context: Context?, attrs: AttributeSet?) :
     override fun draw(canvas: Canvas) {
         super.draw(canvas)
         results?.let { poseLandmarkerResult ->
+
             for(landmark in poseLandmarkerResult.landmarks()) {
                 for(normalizedLandmark in landmark) {
                     canvas.drawPoint(
@@ -171,9 +174,18 @@ class OverlayView(context: Context?, attrs: AttributeSet?) :
                     val hipMidY =
                         (rightHip.second + rightKnee.second) / 2 * imageHeight * scaleFactor
 
-// Variable to hold the status   
+                when (selectedExercise) {
+                    "Squat" -> {
+                        println("Squat!")
+                    }
+                    "Deadlift" -> {
+                        println("Deadlift!")
+                    }
+                    "BenchPress" -> {
+                        println("BenchPress!")
+                    }
+                }
                     var statusText: String
-
 // Check if the squat was successful and update the lift count and status text
                     if (kneeAngle > 120 && succesfulLift == 0) {
                         // If standing up with knee angle > 160°, reset to indicate a new squat can be counted
