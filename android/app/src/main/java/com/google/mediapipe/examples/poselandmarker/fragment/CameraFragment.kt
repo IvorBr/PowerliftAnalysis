@@ -136,19 +136,27 @@ class CameraFragment : Fragment(), PoseLandmarkerHelper.LandmarkerListener {
             setUpCamera()
         }
 
-        fragmentCameraBinding.buttonSquat.setOnClickListener {
-            fragmentCameraBinding.overlay.selectedExercise = "Squat"
-            fragmentCameraBinding.overlay.invalidate()
-        }
+        val bottomNavigationView = fragmentCameraBinding.bottomNavigation
 
-        fragmentCameraBinding.buttonDeadlift.setOnClickListener {
-            fragmentCameraBinding.overlay.selectedExercise = "Deadlift"
-            fragmentCameraBinding.overlay.invalidate()
-        }
-
-        fragmentCameraBinding.buttonBenchpress.setOnClickListener {
-            fragmentCameraBinding.overlay.selectedExercise = "BenchPress"
-            fragmentCameraBinding.overlay.invalidate()
+        bottomNavigationView.setOnNavigationItemSelectedListener { item ->
+            when (item.itemId) {
+                R.id.action_squat -> {
+                    fragmentCameraBinding.overlay.selectedExercise = "Squat"
+                    fragmentCameraBinding.overlay.invalidate()
+                    true
+                }
+                R.id.action_deadlift -> {
+                    fragmentCameraBinding.overlay.selectedExercise = "Deadlift"
+                    fragmentCameraBinding.overlay.invalidate()
+                    true
+                }
+                R.id.action_benchpress -> {
+                    fragmentCameraBinding.overlay.selectedExercise = "BenchPress"
+                    fragmentCameraBinding.overlay.invalidate()
+                    true
+                }
+                else -> false
+            }
         }
 
         // Create the PoseLandmarkerHelper that will handle the inference
