@@ -136,6 +136,21 @@ class CameraFragment : Fragment(), PoseLandmarkerHelper.LandmarkerListener {
             setUpCamera()
         }
 
+        fragmentCameraBinding.buttonSquat.setOnClickListener {
+            fragmentCameraBinding.overlay.selectedExercise = "Squat"
+            fragmentCameraBinding.overlay.invalidate()
+        }
+
+        fragmentCameraBinding.buttonDeadlift.setOnClickListener {
+            fragmentCameraBinding.overlay.selectedExercise = "Deadlift"
+            fragmentCameraBinding.overlay.invalidate()
+        }
+
+        fragmentCameraBinding.buttonBenchpress.setOnClickListener {
+            fragmentCameraBinding.overlay.selectedExercise = "BenchPress"
+            fragmentCameraBinding.overlay.invalidate()
+        }
+
         // Create the PoseLandmarkerHelper that will handle the inference
         backgroundExecutor.execute {
             poseLandmarkerHelper = PoseLandmarkerHelper(

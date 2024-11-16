@@ -27,10 +27,6 @@ import com.google.mediapipe.tasks.vision.poselandmarker.PoseLandmarker
 import com.google.mediapipe.tasks.vision.poselandmarker.PoseLandmarkerResult
 import kotlin.math.max
 import kotlin.math.min
-
-
-import kotlin.math.max
-import kotlin.math.min
 import kotlin.math.abs
 import kotlin.math.atan2
 import kotlin.math.PI
@@ -61,6 +57,8 @@ class OverlayView(context: Context?, attrs: AttributeSet?) :
     private var scaleFactor: Float = 1f
     private var imageWidth: Int = 1
     private var imageHeight: Int = 1
+
+    var selectedExercise: String = "Squat"
 
     init {
         initPaints()
@@ -162,6 +160,17 @@ class OverlayView(context: Context?, attrs: AttributeSet?) :
                 val hipMidX = (rightHip.first + rightKnee.first) / 2 * imageWidth * scaleFactor
                 val hipMidY = (rightHip.second + rightKnee.second) / 2 * imageHeight * scaleFactor
 
+                when (selectedExercise) {
+                    "Squat" -> {
+                        println("Squat!")
+                    }
+                    "Deadlift" -> {
+                        println("Deadlift!")
+                    }
+                    "BenchPress" -> {
+                        println("BenchPress!")
+                    }
+                }
 
                 if (hipAngle < 90){
                     // do something
