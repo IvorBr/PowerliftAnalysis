@@ -62,6 +62,11 @@ class OverlayView(context: Context?, attrs: AttributeSet?) :
     private var imageWidth: Int = 1
     private var imageHeight: Int = 1
 
+    private var succesfulLift: Int = 1
+    private var liftCount: Int = 0
+
+    private var typeLift: Int = 0 // 1=squat,2=bench,3=deadlift
+
     init {
         initPaints()
     }
@@ -88,7 +93,6 @@ class OverlayView(context: Context?, attrs: AttributeSet?) :
     override fun draw(canvas: Canvas) {
         super.draw(canvas)
         results?.let { poseLandmarkerResult ->
-
             for(landmark in poseLandmarkerResult.landmarks()) {
                 for(normalizedLandmark in landmark) {
                     canvas.drawPoint(
@@ -145,40 +149,91 @@ class OverlayView(context: Context?, attrs: AttributeSet?) :
                     poseLandmarkerResult.landmarks().get(0).get(27).x(),
                     poseLandmarkerResult.landmarks().get(0).get(27).y()
                 )
+                if (typeLift == 1) { //squat
+                    // Calculate angles
+                    val angleKnee =
+                        calculateAngle(rightHip, rightKnee, rightAnkle) // Right knee joint angle
+                    val roundedKneeAngle =
+                        kotlin.math.round(angleKnee * 100) / 100 // Round to 2 decimal places
+                    //angleMin.add(roundedKneeAngle)
 
-                // Calculate angles
-                val angleKnee = calculateAngle(rightHip, rightKnee, rightAnkle) // Right knee joint angle
-                val roundedKneeAngle = kotlin.math.round(angleKnee * 100) / 100 // Round to 2 decimal places
-                //angleMin.add(roundedKneeAngle)
+                    val angleHip =
+                        calculateAngle(rightShoulder, rightHip, rightKnee) // Right hip joint angle
+                    val roundedHipAngle =
+                        kotlin.math.round(angleHip * 100) / 100 // Round to 2 decimal places
+                    //angleMinHip.add(roundedHipAngle)
 
-                val angleHip = calculateAngle(rightShoulder, rightHip, rightKnee) // Right hip joint angle
-                val roundedHipAngle = kotlin.math.round(angleHip * 100) / 100 // Round to 2 decimal places
-                //angleMinHip.add(roundedHipAngle)
+                    // Compute complementary angles
+                    val hipAngle = 180 - roundedHipAngle
+                    val kneeAngle = roundedKneeAngle
+                    // Calculate the midpoint for displaying the angle
+                    val hipMidX = (rightHip.first + rightKnee.first) / 2 * imageWidth * scaleFactor
+                    val hipMidY =
+                        (rightHip.second + rightKnee.second) / 2 * imageHeight * scaleFactor
 
-                // Compute complementary angles
-                val hipAngle = 180 - roundedHipAngle
-                val kneeAngle = 180 - roundedKneeAngle
-                // Calculate the midpoint for displaying the angle
-                val hipMidX = (rightHip.first + rightKnee.first) / 2 * imageWidth * scaleFactor
-                val hipMidY = (rightHip.second + rightKnee.second) / 2 * imageHeight * scaleFactor
+// Variable to hold the status   
+                    var statusText: String
 
+// Check if the squat was successful and update the lift count and status text
+                    if (kneeAngle > 120 && succesfulLift == 0) {
+                        // If standing up with knee angle > 160°, reset to indicate a new squat can be counted
+                        succesfulLift = 1
+                        statusText = "Go Down"
 
-                if (hipAngle < 90){
-                    // do something
-                    println("SQUAT!")
-                }
-
-                val angleText = "Hip Angle: $roundedHipAngle°"
-                canvas.drawText(
-                    angleText,
-                    hipMidX,
-                    hipMidY,
-                    Paint().apply {
-                        color = Color.WHITE
-                        textSize = 50f
-                        style = Paint.Style.FILL
+                    } else if (kneeAngle < 90 && succesfulLift == 1) {
+                        // If squatting down with knee angle < 90°, count a successful squat
+                        liftCount = liftCount + 1
+                        succesfulLift = 0
+                        statusText = "Go Up"
+                    } else {
+                        // Default status if not at the specific angles
+                        statusText = if (succesfulLift == 1) "Go Down" else "Go Up"
                     }
-                )
+
+                    // Display the hip angle text
+                    val angleText = "Knee Angle: $kneeAngle°"
+                    canvas.drawText(
+                        angleText,
+                        hipMidX,
+                        hipMidY,
+                        Paint().apply {
+                            color = Color.WHITE
+                            textSize = 50f
+                            style = Paint.Style.FILL
+                        }
+                    )
+
+                    // Display the lift count on the screen
+                    val liftCountText = "Lift Count: $liftCount"
+                    canvas.drawText(
+                        liftCountText,
+                        50f, // Position X (adjust as needed)
+                        100f, // Position Y (adjust as needed)
+                        Paint().apply {
+                            color = Color.YELLOW
+                            textSize = 50f
+                            style = Paint.Style.FILL
+                        }
+                    )
+
+                    // Display the status text (Go Up/Go Down) on the screen
+                    canvas.drawText(
+                        statusText,
+                        50f, // Position X (adjust as needed)
+                        200f, // Position Y (adjust as needed)
+                        Paint().apply {
+                            color = Color.GREEN
+                            textSize = 50f
+                            style = Paint.Style.FILL
+                        }
+
+                    )
+                }
+                else if (typeLift == 2) { //bench
+
+                }
+                else if (typeLift == 3) { //deadlift
+                }
             }
         }
     }
