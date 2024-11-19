@@ -27,7 +27,7 @@ import com.google.mediapipe.tasks.vision.poselandmarker.PoseLandmarker
 import com.google.mediapipe.tasks.vision.poselandmarker.PoseLandmarkerResult
 import kotlin.math.max
 import kotlin.math.min
-
+import android.os.CountDownTimer
 
 import kotlin.math.max
 import kotlin.math.min
@@ -69,8 +69,14 @@ class OverlayView(context: Context?, attrs: AttributeSet?) :
 
     private var typeLift: Int = 0 // 1=squat,2=bench,3=deadlift
 
+    private var remainingTime: Int = 60 // Timer starts at 60 seconds
+    private var timer: CountDownTimer? = null
+    private var isTimerRunning = false
+
+
     init {
         initPaints()
+        startTimer()
     }
 
     fun clear() {
@@ -79,6 +85,7 @@ class OverlayView(context: Context?, attrs: AttributeSet?) :
         linePaint.reset()
         invalidate()
         initPaints()
+        stopTimer()
     }
 
     private fun initPaints() {
@@ -91,9 +98,41 @@ class OverlayView(context: Context?, attrs: AttributeSet?) :
         pointPaint.strokeWidth = LANDMARK_STROKE_WIDTH
         pointPaint.style = Paint.Style.FILL
     }
+    fun startTimer() {
+        isTimerRunning = true
+        timer = object : CountDownTimer(60000, 1000) { // 60 seconds, tick every 1 second
+            override fun onTick(millisUntilFinished: Long) {
+                remainingTime = (millisUntilFinished / 1000).toInt()
+                invalidate() // Redraw the view to update the timer
+            }
 
+            override fun onFinish() {
+                remainingTime = 0
+                invalidate()
+                // Optionally, handle what happens when the timer finishes
+            }
+        }.start()
+    }
+
+    private fun stopTimer() {
+        timer?.cancel()
+    }
     override fun draw(canvas: Canvas) {
         super.draw(canvas)
+        val timerText = "Time Left: $remainingTime s"
+        val canvasWidth = canvas.width.toFloat()
+        val padding = 50f // Padding from the edges
+        canvas.drawText(
+            timerText,
+            canvasWidth - padding - 300f, // Position X: right-aligned with padding
+            padding + 50f, // Position Y: slightly below the top
+            Paint().apply {
+                color = Color.RED
+                textSize = 50f
+                style = Paint.Style.FILL
+            }
+        )
+
         results?.let { poseLandmarkerResult ->
 
             for(landmark in poseLandmarkerResult.landmarks()) {
@@ -152,7 +191,21 @@ class OverlayView(context: Context?, attrs: AttributeSet?) :
                     poseLandmarkerResult.landmarks().get(0).get(27).x(),
                     poseLandmarkerResult.landmarks().get(0).get(27).y()
                 )
-                if (typeLift == 1) { //squat
+                when (selectedExercise) {
+                    "Squat" -> {
+                        typeLift = 1
+                    }
+                    "Deadlift" -> {
+                        typeLift = 3
+                    }
+                    "BenchPress" -> {
+                        typeLift = 2
+                    }
+                }
+                if (typeLift == 1) {    //squat
+
+
+
                     // Calculate angles
                     val angleKnee =
                         calculateAngle(rightHip, rightKnee, rightAnkle) // Right knee joint angle
@@ -174,17 +227,6 @@ class OverlayView(context: Context?, attrs: AttributeSet?) :
                     val hipMidY =
                         (rightHip.second + rightKnee.second) / 2 * imageHeight * scaleFactor
 
-                when (selectedExercise) {
-                    "Squat" -> {
-                        println("Squat!")
-                    }
-                    "Deadlift" -> {
-                        println("Deadlift!")
-                    }
-                    "BenchPress" -> {
-                        println("BenchPress!")
-                    }
-                }
                     var statusText: String
 // Check if the squat was successful and update the lift count and status text
                     if (kneeAngle > 120 && succesfulLift == 0) {
@@ -214,13 +256,15 @@ class OverlayView(context: Context?, attrs: AttributeSet?) :
                             style = Paint.Style.FILL
                         }
                     )
-
+                    // Get canvas height for vertical positioning
+                    val canvasHeight = canvas.height.toFloat()
+                    val padding = 50f // Add padding from the edges
                     // Display the lift count on the screen
-                    val liftCountText = "Lift Count: $liftCount"
+                    val liftCountText = "Squat Count: $liftCount"
                     canvas.drawText(
                         liftCountText,
-                        50f, // Position X (adjust as needed)
-                        100f, // Position Y (adjust as needed)
+                        padding, // Position X: left-aligned with padding
+                        canvasHeight - 150f, // Position Y: slightly above the very bottom
                         Paint().apply {
                             color = Color.YELLOW
                             textSize = 50f
@@ -229,22 +273,93 @@ class OverlayView(context: Context?, attrs: AttributeSet?) :
                     )
 
                     // Display the status text (Go Up/Go Down) on the screen
+// Display the status text below the lift count
                     canvas.drawText(
                         statusText,
-                        50f, // Position X (adjust as needed)
-                        200f, // Position Y (adjust as needed)
+                        padding, // Position X: left-aligned with padding
+                        canvasHeight - 75f, // Position Y: closer to the bottom
                         Paint().apply {
                             color = Color.GREEN
                             textSize = 50f
                             style = Paint.Style.FILL
                         }
-
                     )
                 }
+                
                 else if (typeLift == 2) { //bench
 
                 }
                 else if (typeLift == 3) { //deadlift
+
+                    // Calculate angles
+                    val rightKneeAngle = calculateAngle(rightHip, rightKnee, rightAnkle) // Right knee joint angle
+                    val roundedRightKneeAngle = kotlin.math.round(rightKneeAngle * 100) / 100 // Round to 2 decimal places
+
+                    // Check if shoulders are behind hips
+                    val shouldersBehindHips = rightShoulder.first < rightHip.first
+
+                    // Calculate midpoint for displaying text
+                    val kneeMidX = (rightKnee.first + rightAnkle.first) / 2 * imageWidth * scaleFactor
+                    val kneeMidY = (rightKnee.second + rightAnkle.second) / 2 * imageHeight * scaleFactor
+
+                    // Determine deadlift success
+                    var statusText: String
+                    if (roundedRightKneeAngle > 175 && shouldersBehindHips && succesfulLift == 0) {
+                        // If knees are locked and shoulders are behind hips, mark lift as successful
+                        liftCount++
+                        succesfulLift = 1
+                        statusText = "Lower Weight"
+                    } else if (roundedRightKneeAngle < 160 && !shouldersBehindHips && succesfulLift == 1) {
+                        // If knees are not locked and shoulders are not behind hips, prepare for the next lift
+                        succesfulLift = 0
+                        statusText = "Lift Up"
+                    } else {
+                        // Default status if not meeting the conditions
+                        statusText = if (succesfulLift == 1) "Lower Weight" else "Lift Up"
+                    }
+
+                    // Display the knee angle
+                    val angleText = "Knee Angle: $roundedRightKneeAngle°"
+                    canvas.drawText(
+                        angleText,
+                        kneeMidX,
+                        kneeMidY,
+                        Paint().apply {
+                            color = Color.WHITE
+                            textSize = 50f
+                            style = Paint.Style.FILL
+                        }
+                    )
+
+                    // Get canvas height for vertical positioning
+                    val canvasHeight = canvas.height.toFloat()
+                    val padding = 50f // Add padding from the edges
+
+                    // Display the lift count on the screen
+                    val liftCountText = "Deadlift Count: $liftCount"
+                    canvas.drawText(
+                        liftCountText,
+                        padding, // Position X: left-aligned with padding
+                        canvasHeight - 150f, // Position Y: slightly above the very bottom
+                        Paint().apply {
+                            color = Color.YELLOW
+                            textSize = 50f
+                            style = Paint.Style.FILL
+                        }
+                    )
+
+                    // Display the status text (Lift Up/Lower Weight)
+                    canvas.drawText(
+                        statusText,
+                        padding, // Position X: left-aligned with padding
+                        canvasHeight - 75f, // Position Y: closer to the bottom
+                        Paint().apply {
+                            color = Color.GREEN
+                            textSize = 50f
+                            style = Paint.Style.FILL
+                        }
+                    )
+
                 }
             }
         }
