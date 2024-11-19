@@ -1,0 +1,29 @@
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="16dp">
+
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="?attr/colorOutline"
+        android:layout_marginBottom="16dp" />
+
+    <!-- Analytics content -->
+    <TextView
+        android:id="@+id/analytics_text"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Your analytics will appear here."
+        android:paddingBottom="16dp" />
+
+    <Button
+        android:id="@+id/dismiss_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Dismiss"
+        android:layout_gravity="end" />
+</LinearLayout>

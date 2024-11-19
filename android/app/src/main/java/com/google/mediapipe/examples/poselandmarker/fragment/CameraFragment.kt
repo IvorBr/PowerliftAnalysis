@@ -40,6 +40,7 @@ import com.google.mediapipe.examples.poselandmarker.LiftType
 import com.google.mediapipe.examples.poselandmarker.PoseLandmarkerHelper
 import com.google.mediapipe.examples.poselandmarker.MainViewModel
 import com.google.mediapipe.examples.poselandmarker.R
+import com.google.mediapipe.examples.poselandmarker.fragment.AnalyticsBottomSheetFragment
 import com.google.mediapipe.examples.poselandmarker.databinding.FragmentCameraBinding
 import com.google.mediapipe.tasks.vision.core.RunningMode
 import java.util.Locale
@@ -143,7 +144,26 @@ class CameraFragment : Fragment(), PoseLandmarkerHelper.LandmarkerListener {
 
         startButton.setOnClickListener {
             fragmentCameraBinding.overlay.startTimer()
-            startButton.visibility = View.GONE
+            startButton.animate()
+                .alpha(0f)
+                .setDuration(300)
+                .withEndAction {
+                    bottomNavigationView.visibility = View.GONE
+
+                    val modalBottomSheet = AnalyticsBottomSheetFragment()
+                    modalBottomSheet.show(childFragmentManager, AnalyticsBottomSheetFragment::class.java.simpleName)
+                }
+                .start()
+
+            bottomNavigationView.animate()
+                .translationY(bottomNavigationView.height.toFloat()) // Slide out below the screen
+                .alpha(0f) // Fade out
+                .setDuration(300) // Animation duration in milliseconds
+                .withEndAction {
+                    // Make the view invisible after animation
+                    bottomNavigationView.visibility = View.GONE
+                }
+                .start()
         }
 
         bottomNavigationView.setOnNavigationItemSelectedListener { item ->
