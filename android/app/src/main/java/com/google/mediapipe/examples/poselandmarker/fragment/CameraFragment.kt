@@ -35,6 +35,7 @@ import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.navigation.Navigation
+import com.google.android.material.animation.AnimationUtils
 import com.google.mediapipe.examples.poselandmarker.LiftType
 import com.google.mediapipe.examples.poselandmarker.PoseLandmarkerHelper
 import com.google.mediapipe.examples.poselandmarker.MainViewModel
