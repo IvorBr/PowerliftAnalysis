@@ -42,6 +42,31 @@ enum class LiftType {
     None
 }
 
+enum class Landmark(val index: Int) {
+    NOSE(0),
+    LEFT_EYE_INNER(1),
+    LEFT_EYE(2),
+    LEFT_EYE_OUTER(3),
+    RIGHT_EYE_INNER(4),
+    RIGHT_EYE(5),
+    RIGHT_EYE_OUTER(6),
+    LEFT_EAR(7),
+    RIGHT_EAR(8),
+    LEFT_SHOULDER(11),
+    RIGHT_SHOULDER(12),
+    LEFT_ELBOW(13),
+    RIGHT_ELBOW(14),
+    LEFT_WRIST(15),
+    RIGHT_WRIST(16),
+    LEFT_HIP(23),
+    RIGHT_HIP(24),
+    LEFT_KNEE(25),
+    RIGHT_KNEE(26),
+    LEFT_ANKLE(27),
+    RIGHT_ANKLE(28)
+}
+
+
 fun calculateAngle(a: Pair<Float, Float>, b: Pair<Float, Float>, c: Pair<Float, Float>): Float {
     // Convert points to angles
     val angleAB = atan2(a.second - b.second, a.first - b.first)
@@ -128,6 +153,55 @@ class OverlayView(context: Context?, attrs: AttributeSet?) :
             }
         }.start()
     }
+
+    private fun drawRedCircle(canvas: Canvas, landmarkerID: Int) {
+        results?.let { poseLandmarkerResult ->
+            // Ensure the landmark ID is within a valid range
+            if (landmarkerID < 0 || landmarkerID >= poseLandmarkerResult.landmarks().get(0).size) {
+                return // Exit if the landmark ID is invalid
+            }
+
+            // Get the landmark position
+            val landmark = poseLandmarkerResult.landmarks().get(0).get(landmarkerID)
+            val x = landmark.x() * imageWidth * scaleFactor
+            val y = landmark.y() * imageHeight * scaleFactor
+
+            // Draw a solid inner circle
+            canvas.drawCircle(
+                x, y,
+                30f, // Inner circle radius
+                Paint().apply {
+                    color = Color.RED
+                    alpha = 255 // Fully opaque for the center
+                    style = Paint.Style.FILL
+                }
+            )
+
+            // Draw a semi-transparent outer circle for the "glow" effect
+            canvas.drawCircle(
+                x, y,
+                60f, // Outer circle radius
+                Paint().apply {
+                    color = Color.RED
+                    alpha = 100 // Semi-transparent edges
+                    style = Paint.Style.FILL
+                }
+            )
+
+            // Draw an even larger and more transparent outer circle for the faded edges
+            canvas.drawCircle(
+                x, y,
+                90f, // Largest circle radius
+                Paint().apply {
+                    color = Color.RED
+                    alpha = 50 // Faded edges
+                    style = Paint.Style.FILL
+                }
+            )
+        }
+    }
+
+
 
     private fun deadlifts(canvas: Canvas){
 
@@ -268,7 +342,7 @@ class OverlayView(context: Context?, attrs: AttributeSet?) :
                     style = Paint.Style.FILL
                 }
             )
-
+            drawRedCircle(canvas, Landmark.LEFT_KNEE.index)
             // Display the status text (Go Up/Go Down) on the screen
     // Display the status text below the lift count
             canvas.drawText(
@@ -326,43 +400,45 @@ class OverlayView(context: Context?, attrs: AttributeSet?) :
                 //}
 
                 rightShoulder = Pair(
-                    poseLandmarkerResult.landmarks().get(0).get(12).x(),
-                    poseLandmarkerResult.landmarks().get(0).get(12).y())
+                    poseLandmarkerResult.landmarks().get(0).get(Landmark.RIGHT_SHOULDER.index).x(),
+                    poseLandmarkerResult.landmarks().get(0).get(Landmark.RIGHT_SHOULDER.index).y()
+                )
 
                 leftShoulder = Pair(
-                    poseLandmarkerResult.landmarks().get(0).get(13).x(),
-                    poseLandmarkerResult.landmarks().get(0).get(13).y()
+                    poseLandmarkerResult.landmarks().get(0).get(Landmark.LEFT_SHOULDER.index).x(),
+                    poseLandmarkerResult.landmarks().get(0).get(Landmark.LEFT_SHOULDER.index).y()
                 )
 
                 leftHip = Pair(
-                    poseLandmarkerResult.landmarks().get(0).get(24).x(),
-                    poseLandmarkerResult.landmarks().get(0).get(24).y()
+                    poseLandmarkerResult.landmarks().get(0).get(Landmark.LEFT_HIP.index).x(),
+                    poseLandmarkerResult.landmarks().get(0).get(Landmark.LEFT_HIP.index).y()
                 )
 
                 rightHip = Pair(
-                    poseLandmarkerResult.landmarks().get(0).get(23).x(),
-                    poseLandmarkerResult.landmarks().get(0).get(23).y()
+                    poseLandmarkerResult.landmarks().get(0).get(Landmark.RIGHT_HIP.index).x(),
+                    poseLandmarkerResult.landmarks().get(0).get(Landmark.RIGHT_HIP.index).y()
                 )
 
                 rightKnee = Pair(
-                    poseLandmarkerResult.landmarks().get(0).get(26).x(),
-                    poseLandmarkerResult.landmarks().get(0).get(26).y()
+                    poseLandmarkerResult.landmarks().get(0).get(Landmark.RIGHT_KNEE.index).x(),
+                    poseLandmarkerResult.landmarks().get(0).get(Landmark.RIGHT_KNEE.index).y()
                 )
 
                 leftKnee = Pair(
-                    poseLandmarkerResult.landmarks().get(0).get(25).x(),
-                    poseLandmarkerResult.landmarks().get(0).get(25).y()
+                    poseLandmarkerResult.landmarks().get(0).get(Landmark.LEFT_KNEE.index).x(),
+                    poseLandmarkerResult.landmarks().get(0).get(Landmark.LEFT_KNEE.index).y()
                 )
 
                 rightAnkle = Pair(
-                    poseLandmarkerResult.landmarks().get(0).get(28).x(),
-                    poseLandmarkerResult.landmarks().get(0).get(28).y()
+                    poseLandmarkerResult.landmarks().get(0).get(Landmark.RIGHT_ANKLE.index).x(),
+                    poseLandmarkerResult.landmarks().get(0).get(Landmark.RIGHT_ANKLE.index).y()
                 )
 
                 leftAnkle = Pair(
-                    poseLandmarkerResult.landmarks().get(0).get(27).x(),
-                    poseLandmarkerResult.landmarks().get(0).get(27).y()
+                    poseLandmarkerResult.landmarks().get(0).get(Landmark.LEFT_ANKLE.index).x(),
+                    poseLandmarkerResult.landmarks().get(0).get(Landmark.LEFT_ANKLE.index).y()
                 )
+
                 if (currentLift == LiftType.Squat) {    //squat
                     squats(canvas)
                 }
