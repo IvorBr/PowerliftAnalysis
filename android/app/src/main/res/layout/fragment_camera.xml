@@ -24,49 +24,21 @@
         android:id="@+id/view_finder"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        app:scaleType="fillStart" >
-
-        <LinearLayout
-            android:id="@+id/exercise_buttons"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_above="@id/view"
-            android:gravity="center"
-            android:orientation="horizontal"
-            android:padding="16dp">
-
-            <ImageButton
-                android:id="@+id/button_squat"
-                android:layout_width="60dp"
-                android:layout_height="60dp"
-                android:layout_margin="8dp"
-                android:background="@drawable/round_button_background"
-                android:contentDescription="@string/menu_squat"
-                android:src="@drawable/ic_baseline_photo_camera_24" />
-
-            <ImageButton
-                android:id="@+id/button_benchpress"
-                android:layout_width="60dp"
-                android:layout_height="60dp"
-                android:layout_margin="8dp"
-                android:background="@drawable/round_button_background"
-                android:contentDescription="@string/menu_benchpress"
-                android:src="@drawable/ic_baseline_photo_camera_24" />
-
-            <ImageButton
-                android:id="@+id/button_deadlift"
-                android:layout_width="60dp"
-                android:layout_height="60dp"
-                android:layout_margin="8dp"
-                android:background="@drawable/round_button_background"
-                android:contentDescription="@string/menu_deadlift"
-                android:src="@drawable/ic_baseline_photo_camera_24" />
-        </LinearLayout>
-    </androidx.camera.view.PreviewView>
+        app:scaleType="fillStart" />
 
     <com.google.mediapipe.examples.poselandmarker.OverlayView
         android:id="@+id/overlay"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
+
+    <com.google.android.material.bottomnavigation.BottomNavigationView
+        android:id="@+id/bottom_navigation"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
+        app:menu="@menu/lift_menu_nav"
+        app:labelVisibilityMode="labeled"
+        app:itemIconTint="@color/nav_item_color"
+        app:itemTextColor="@color/nav_item_color" />
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>
