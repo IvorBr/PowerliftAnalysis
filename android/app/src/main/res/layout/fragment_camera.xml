@@ -10,7 +10,7 @@
         android:layout_height="wrap_content"
         android:text="@string/start_button"
         android:layout_gravity="center_horizontal|bottom"
-        android:layout_marginBottom="72dp" /> <!-- Adjust margin to avoid overlap -->
+        android:layout_marginBottom="72dp" />
 
     <androidx.camera.view.PreviewView
         android:id="@+id/view_finder"

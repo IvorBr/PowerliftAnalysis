@@ -35,6 +35,7 @@ import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.navigation.Navigation
+import com.google.mediapipe.examples.poselandmarker.LiftType
 import com.google.mediapipe.examples.poselandmarker.PoseLandmarkerHelper
 import com.google.mediapipe.examples.poselandmarker.MainViewModel
 import com.google.mediapipe.examples.poselandmarker.R
@@ -146,17 +147,17 @@ class CameraFragment : Fragment(), PoseLandmarkerHelper.LandmarkerListener {
         bottomNavigationView.setOnNavigationItemSelectedListener { item ->
             when (item.itemId) {
                 R.id.action_squat -> {
-                    fragmentCameraBinding.overlay.selectedExercise = "Squat"
-                    fragmentCameraBinding.overlay.invalidate()
-                    true
-                }
-                R.id.action_deadlift -> {
-                    fragmentCameraBinding.overlay.selectedExercise = "Deadlift"
+                    fragmentCameraBinding.overlay.currentLift = LiftType.Squat
                     fragmentCameraBinding.overlay.invalidate()
                     true
                 }
                 R.id.action_benchpress -> {
-                    fragmentCameraBinding.overlay.selectedExercise = "BenchPress"
+                    fragmentCameraBinding.overlay.currentLift = LiftType.Benchpress
+                    fragmentCameraBinding.overlay.invalidate()
+                    true
+                }
+                R.id.action_deadlift -> {
+                    fragmentCameraBinding.overlay.currentLift = LiftType.Deadlift
                     fragmentCameraBinding.overlay.invalidate()
                     true
                 }

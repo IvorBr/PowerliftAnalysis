@@ -35,6 +35,12 @@ import kotlin.math.abs
 import kotlin.math.atan2
 import kotlin.math.PI
 
+enum class LiftType {
+    Squat,
+    Benchpress,
+    Deadlift
+}
+
 fun calculateAngle(a: Pair<Float, Float>, b: Pair<Float, Float>, c: Pair<Float, Float>): Float {
     // Convert points to angles
     val angleAB = atan2(a.second - b.second, a.first - b.first)
@@ -62,12 +68,10 @@ class OverlayView(context: Context?, attrs: AttributeSet?) :
     private var imageWidth: Int = 1
     private var imageHeight: Int = 1
 
-    var selectedExercise: String = "Squat"
-
     private var succesfulLift: Int = 1
     private var liftCount: Int = 0
 
-    private var typeLift: Int = 0 // 1=squat,2=bench,3=deadlift
+    var currentLift: LiftType = LiftType.Squat
 
     private var remainingTime: Int = 60 // Timer starts at 60 seconds
     private var timer: CountDownTimer? = null
@@ -191,21 +195,7 @@ class OverlayView(context: Context?, attrs: AttributeSet?) :
                     poseLandmarkerResult.landmarks().get(0).get(27).x(),
                     poseLandmarkerResult.landmarks().get(0).get(27).y()
                 )
-                when (selectedExercise) {
-                    "Squat" -> {
-                        typeLift = 1
-                    }
-                    "Deadlift" -> {
-                        typeLift = 3
-                    }
-                    "BenchPress" -> {
-                        typeLift = 2
-                    }
-                }
-                if (typeLift == 1) {    //squat
-
-
-
+                if (currentLift == LiftType.Squat) {    //squat
                     // Calculate angles
                     val angleKnee =
                         calculateAngle(rightHip, rightKnee, rightAnkle) // Right knee joint angle
@@ -286,10 +276,10 @@ class OverlayView(context: Context?, attrs: AttributeSet?) :
                     )
                 }
                 
-                else if (typeLift == 2) { //bench
+                else if (currentLift == LiftType.Benchpress) {
 
                 }
-                else if (typeLift == 3) { //deadlift
+                else if (currentLift == LiftType.Deadlift) {
 
                     // Calculate angles
                     val rightKneeAngle = calculateAngle(rightHip, rightKnee, rightAnkle) // Right knee joint angle
