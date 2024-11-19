@@ -140,6 +140,7 @@ class CameraFragment : Fragment(), PoseLandmarkerHelper.LandmarkerListener {
         val bottomNavigationView = fragmentCameraBinding.bottomNavigation
 
         startButton.setOnClickListener {
+            fragmentCameraBinding.overlay.startTimer()
             startButton.visibility = View.GONE
         }
 
