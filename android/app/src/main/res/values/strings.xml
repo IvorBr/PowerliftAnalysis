@@ -33,7 +33,7 @@
     <string name="menu_squat">Squat</string>
     <string name="menu_benchpress">Benchpress</string>
     <string name="menu_deadlift">Deadlift</string>
-
+    <string name="start_button">Start</string>
     <string name="tv_gallery_placeholder">Click + to add an image or a video
         to begin running the pose landmarker.</string>
 
