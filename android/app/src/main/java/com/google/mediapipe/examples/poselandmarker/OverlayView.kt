@@ -28,6 +28,7 @@ import com.google.mediapipe.tasks.vision.poselandmarker.PoseLandmarkerResult
 import kotlin.math.max
 import kotlin.math.min
 import android.os.CountDownTimer
+import com.github.mikephil.charting.data.Entry
 
 import kotlin.math.max
 import kotlin.math.min
@@ -102,6 +103,8 @@ class OverlayView(context: Context?, attrs: AttributeSet?) :
 
     private var timer: CountDownTimer? = null
     private var isTimerRunning = false
+    private var milliSecLeft : Long = 0;
+    val squatAngles = ArrayList<Entry>()
 
     private var rightShoulder: Pair<Float, Float> = Pair(0f, 0f)
     private var leftShoulder: Pair<Float, Float> = Pair(0f, 0f)
@@ -141,8 +144,10 @@ class OverlayView(context: Context?, attrs: AttributeSet?) :
 
     fun startTimer() {
         isTimerRunning = true
-        timer = object : CountDownTimer((remainingTime * 1000).toLong(), 1000) { // 60 seconds, tick every 1 second
+        timer = object : CountDownTimer((remainingTime * 1000).toLong(), 1000) {
             override fun onTick(millisUntilFinished: Long) {
+                milliSecLeft = remainingTime*1000 - millisUntilFinished
+
                 remainingTime = (millisUntilFinished / 1000).toInt()
                 invalidate() // Redraw the view to update the timer
             }
@@ -279,17 +284,15 @@ class OverlayView(context: Context?, attrs: AttributeSet?) :
     private fun squats(canvas: Canvas){
         if (isTimerRunning){
             // Calculate angles
-            val angleKnee =
-                calculateAngle(rightHip, rightKnee, rightAnkle) // Right knee joint angle
-            val roundedKneeAngle =
-                kotlin.math.round(angleKnee * 100) / 100 // Round to 2 decimal places
+            val angleKnee = calculateAngle(rightHip, rightKnee, rightAnkle) // Right knee joint angle
+            val roundedKneeAngle = kotlin.math.round(angleKnee * 100) / 100 // Round to 2 decimal places
             //angleMin.add(roundedKneeAngle)
 
-            val angleHip =
-                calculateAngle(rightShoulder, rightHip, rightKnee) // Right hip joint angle
-            val roundedHipAngle =
-                kotlin.math.round(angleHip * 100) / 100 // Round to 2 decimal places
+            val angleHip = calculateAngle(rightShoulder, rightHip, rightKnee) // Right hip joint angle
+            val roundedHipAngle = kotlin.math.round(angleHip * 100) / 100 // Round to 2 decimal places
             //angleMinHip.add(roundedHipAngle)
+
+            squatAngles.add(Entry(milliSecLeft.toFloat(), roundedKneeAngle))
 
             // Compute complementary angles
             val hipAngle = 180 - roundedHipAngle

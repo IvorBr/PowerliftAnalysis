@@ -18,6 +18,7 @@ package com.google.mediapipe.examples.poselandmarker.fragment
 import android.annotation.SuppressLint
 import android.content.res.Configuration
 import android.os.Bundle
+import android.os.Parcelable
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
@@ -35,6 +36,7 @@ import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.navigation.Navigation
+import com.github.mikephil.charting.data.Entry
 import com.google.android.material.animation.AnimationUtils
 import com.google.mediapipe.examples.poselandmarker.LiftType
 import com.google.mediapipe.examples.poselandmarker.PoseLandmarkerHelper
@@ -128,6 +130,23 @@ class CameraFragment : Fragment(), PoseLandmarkerHelper.LandmarkerListener {
 
     private fun showAnalyticsModal() {
         val modalBottomSheet = AnalyticsBottomSheetFragment()
+        modalBottomSheet.setKneeAngles(fragmentCameraBinding.overlay.squatAngles)
+
+        modalBottomSheet.onDismissCallback = {
+            val bottomNavigationView = fragmentCameraBinding.bottomNavigation
+
+            fragmentCameraBinding.startButton.animate()
+                .alpha(1f)
+                .setDuration(300)
+                .start()
+
+            bottomNavigationView.visibility = View.VISIBLE
+            fragmentCameraBinding.bottomNavigation.animate()
+                .translationY(0f)
+                .alpha(1f)
+                .setDuration(300)
+                .start()
+        }
         modalBottomSheet.show(childFragmentManager, AnalyticsBottomSheetFragment::class.java.simpleName)
     }
 
