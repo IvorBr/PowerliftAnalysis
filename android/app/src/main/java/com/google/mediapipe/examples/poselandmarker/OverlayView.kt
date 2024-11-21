@@ -96,6 +96,7 @@ class OverlayView(context: Context?, attrs: AttributeSet?) :
 
 
     private var succesfulLift: Int = 1
+    private var finishedLift: Boolean = false
     private var liftCount: Int = 0
 
     var currentLift: LiftType = LiftType.None
@@ -274,62 +275,66 @@ class OverlayView(context: Context?, attrs: AttributeSet?) :
             }
         )
     }
-
-    private fun squats(canvas: Canvas){
-        if (isTimerRunning){
+    private fun squats(canvas: Canvas) {
+        if (isTimerRunning) {
             // Calculate angles
             val angleKnee =
                 calculateAngle(rightHip, rightKnee, rightAnkle) // Right knee joint angle
             val roundedKneeAngle =
                 kotlin.math.round(angleKnee * 100) / 100 // Round to 2 decimal places
-            //angleMin.add(roundedKneeAngle)
 
             val angleHip =
                 calculateAngle(rightShoulder, rightHip, rightKnee) // Right hip joint angle
             val roundedHipAngle =
                 kotlin.math.round(angleHip * 100) / 100 // Round to 2 decimal places
-            //angleMinHip.add(roundedHipAngle)
 
             // Compute complementary angles
             val hipAngle = 180 - roundedHipAngle
             val kneeAngle = roundedKneeAngle
+
             // Calculate the midpoint for displaying the angle
             val hipMidX = (rightHip.first + rightKnee.first) / 2 * imageWidth * scaleFactor
             val hipMidY =
                 (rightHip.second + rightKnee.second) / 2 * imageHeight * scaleFactor
 
             var statusText: String
-    // Check if the squat was successful and update the lift count and status text
+            var overlayColor: Int? = null // Variable to track glow color
+
+            // Check if the squat was successful and update the lift count and status text
             if (kneeAngle > 120 && succesfulLift == 0) {
-                // If standing up with knee angle > 160°, reset to indicate a new squat can be counted
+                // Standing up with knee angle > 120°, reset to indicate a new squat can be counted
                 succesfulLift = 1
                 statusText = "Go Down"
-
             } else if (kneeAngle < 90 && succesfulLift == 1) {
-                // If squatting down with knee angle < 90°, count a successful squat
-                liftCount = liftCount + 1
+                // Squatting down with knee angle < 90°, count a successful squat
+                liftCount += 1
                 succesfulLift = 0
                 statusText = "Go Up"
+                overlayColor = Color.argb(100, 0, 255, 0) // Green for correct squat
+            } else if (succesfulLift == 1 && kneeAngle in 90.0..120.0) {
+                // If the user did not reach below 90° after passing 120°
+                overlayColor = Color.argb(100, 255, 0, 0) // Red for incorrect squat
+                statusText = "Incorrect Depth"
             } else {
                 // Default status if not at the specific angles
                 statusText = if (succesfulLift == 1) "Go Down" else "Go Up"
             }
 
-            // Display the hip angle text
-            val angleText = "Knee Angle: $kneeAngle°"
-            canvas.drawText(
-                angleText,
-                hipMidX,
-                hipMidY,
-                Paint().apply {
-                    color = Color.WHITE
-                    textSize = 50f
+            // Apply the glow effect if applicable
+            overlayColor?.let {
+                val overlayPaint = Paint().apply {
+                    color = it
                     style = Paint.Style.FILL
                 }
-            )
+                canvas.drawRect(
+                    0f, 0f, canvas.width.toFloat(), canvas.height.toFloat(), overlayPaint
+                )
+            }
+
             // Get canvas height for vertical positioning
             val canvasHeight = canvas.height.toFloat()
             val padding = 50f // Add padding from the edges
+
             // Display the lift count on the screen
             val liftCountText = "Squat Count: $liftCount"
             canvas.drawText(
@@ -342,9 +347,8 @@ class OverlayView(context: Context?, attrs: AttributeSet?) :
                     style = Paint.Style.FILL
                 }
             )
-            drawRedCircle(canvas, Landmark.LEFT_KNEE.index)
+
             // Display the status text (Go Up/Go Down) on the screen
-    // Display the status text below the lift count
             canvas.drawText(
                 statusText,
                 padding, // Position X: left-aligned with padding
@@ -355,8 +359,13 @@ class OverlayView(context: Context?, attrs: AttributeSet?) :
                     style = Paint.Style.FILL
                 }
             )
+
+            // Draw indicator for the left knee
+            //drawRedCircle(canvas, Landmark.LEFT_KNEE.index)
         }
     }
+
+
 
     private fun stopTimer() {
         timer?.cancel()
