@@ -20,17 +20,19 @@
 
     <Button
         android:id="@+id/start_button"
+        style="@style/Widget.Material3.Button"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="@string/start_button"
         android:layout_gravity="center_horizontal|bottom"
-        android:layout_marginBottom="72dp"
-        style="@style/Widget.Material3.Button" />
+        android:layout_marginBottom="90dp"
+        android:minWidth="120dip"
+        android:minHeight="54dip"
+        android:text="@string/start_button" />
 
     <com.google.android.material.bottomnavigation.BottomNavigationView
         android:id="@+id/bottom_navigation"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="65dip"
         android:layout_gravity="bottom"
         app:menu="@menu/lift_menu_nav"
         app:labelVisibilityMode="labeled"

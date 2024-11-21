@@ -101,7 +101,6 @@ class OverlayView(context: Context?, attrs: AttributeSet?) :
 
     var currentLift: LiftType = LiftType.None
 
-    private var remainingTime: Int = 61 // Timer starts at 60 seconds
     private var timer: CountDownTimer? = null
     private var isTimerRunning = false
 
@@ -113,8 +112,6 @@ class OverlayView(context: Context?, attrs: AttributeSet?) :
     private var leftKnee: Pair<Float, Float> = Pair(0f, 0f)
     private var rightAnkle: Pair<Float, Float> = Pair(0f, 0f)
     private var leftAnkle: Pair<Float, Float> = Pair(0f, 0f)
-
-
 
     init {
         initPaints()
@@ -139,9 +136,13 @@ class OverlayView(context: Context?, attrs: AttributeSet?) :
         pointPaint.strokeWidth = LANDMARK_STROKE_WIDTH
         pointPaint.style = Paint.Style.FILL
     }
+
+    var onTimerFinish: (() -> Unit)? = null
+    private var remainingTime: Int = 3
+
     fun startTimer() {
         isTimerRunning = true
-        timer = object : CountDownTimer(60000, 1000) { // 60 seconds, tick every 1 second
+        timer = object : CountDownTimer((remainingTime * 1000).toLong(), 1000) { // 60 seconds, tick every 1 second
             override fun onTick(millisUntilFinished: Long) {
                 remainingTime = (millisUntilFinished / 1000).toInt()
                 invalidate() // Redraw the view to update the timer
@@ -150,7 +151,7 @@ class OverlayView(context: Context?, attrs: AttributeSet?) :
             override fun onFinish() {
                 remainingTime = 0
                 invalidate()
-                // Optionally, handle what happens when the timer finishes
+                onTimerFinish?.invoke()
             }
         }.start()
     }

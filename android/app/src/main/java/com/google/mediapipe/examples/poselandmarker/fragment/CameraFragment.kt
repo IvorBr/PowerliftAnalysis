@@ -126,6 +126,11 @@ class CameraFragment : Fragment(), PoseLandmarkerHelper.LandmarkerListener {
         return fragmentCameraBinding.root
     }
 
+    private fun showAnalyticsModal() {
+        val modalBottomSheet = AnalyticsBottomSheetFragment()
+        modalBottomSheet.show(childFragmentManager, AnalyticsBottomSheetFragment::class.java.simpleName)
+    }
+
     @SuppressLint("MissingPermission")
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -142,25 +147,22 @@ class CameraFragment : Fragment(), PoseLandmarkerHelper.LandmarkerListener {
         val startButton = fragmentCameraBinding.startButton
         val bottomNavigationView = fragmentCameraBinding.bottomNavigation
 
+        fragmentCameraBinding.overlay.onTimerFinish = {
+            showAnalyticsModal()
+        }
+
         startButton.setOnClickListener {
             fragmentCameraBinding.overlay.startTimer()
             startButton.animate()
                 .alpha(0f)
                 .setDuration(300)
-                .withEndAction {
-                    bottomNavigationView.visibility = View.GONE
-
-                    val modalBottomSheet = AnalyticsBottomSheetFragment()
-                    modalBottomSheet.show(childFragmentManager, AnalyticsBottomSheetFragment::class.java.simpleName)
-                }
                 .start()
 
             bottomNavigationView.animate()
-                .translationY(bottomNavigationView.height.toFloat()) // Slide out below the screen
-                .alpha(0f) // Fade out
-                .setDuration(300) // Animation duration in milliseconds
+                .translationY(bottomNavigationView.height.toFloat())
+                .alpha(0f)
+                .setDuration(300)
                 .withEndAction {
-                    // Make the view invisible after animation
                     bottomNavigationView.visibility = View.GONE
                 }
                 .start()
