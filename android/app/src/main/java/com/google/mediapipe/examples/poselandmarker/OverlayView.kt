@@ -29,12 +29,15 @@ import kotlin.math.max
 import kotlin.math.min
 import android.os.CountDownTimer
 import com.github.mikephil.charting.data.Entry
+import java.util.ArrayDeque
+
 
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.abs
 import kotlin.math.atan2
 import kotlin.math.PI
+import kotlin.math.round
 
 enum class LiftType {
     Squat,
@@ -96,8 +99,15 @@ class OverlayView(context: Context?, attrs: AttributeSet?) :
     private var imageHeight: Int = 1
 
 
-    private var succesfulLift: Int = 1
+    private var succesfulLift: Boolean = false
     private var liftCount: Int = 0
+
+    private var finishedLift: Boolean = false
+    private var setLift: Boolean = false
+
+    private var damageEffectActive = false
+    private var damageTimer: CountDownTimer? = null
+
 
     var currentLift: LiftType = LiftType.None
 
@@ -105,6 +115,9 @@ class OverlayView(context: Context?, attrs: AttributeSet?) :
     private var isTimerRunning = false
     private var milliSecLeft : Long = 0;
     val squatAngles = ArrayList<Entry>()
+
+    private val kneeAnglesQueue: ArrayDeque<Float> = ArrayDeque()
+
 
     private var rightShoulder: Pair<Float, Float> = Pair(0f, 0f)
     private var leftShoulder: Pair<Float, Float> = Pair(0f, 0f)
@@ -127,6 +140,39 @@ class OverlayView(context: Context?, attrs: AttributeSet?) :
         initPaints()
         stopTimer()
     }
+    fun getLastKneeAngles(): List<Float> {
+        return kneeAnglesQueue.toList() // Returns a snapshot of the current angles
+    }
+    private fun addKneeAngle(angle: Float) {
+        if (kneeAnglesQueue.size >= 10) {
+            // Remove the oldest angle if the queue already has 10 elements
+            kneeAnglesQueue.removeFirst()
+        }
+        // Add the new angle to the queue
+        kneeAnglesQueue.addLast(angle)
+    }
+
+
+    private fun triggerDamageEffect() {
+        damageEffectActive = true
+
+        // Cancel any existing timer to avoid overlapping
+        damageTimer?.cancel()
+
+        // Start a 1-second timer
+        damageTimer = object : CountDownTimer(1000, 1000) {
+            override fun onTick(millisUntilFinished: Long) {
+                // Nothing needed here for this effect
+            }
+
+            override fun onFinish() {
+                damageEffectActive = false
+                invalidate() // Redraw to remove the effect
+            }
+        }.start()
+
+        invalidate() // Trigger a redraw to show the damage effect immediately
+    }
 
     private fun initPaints() {
         linePaint.color =
@@ -140,7 +186,7 @@ class OverlayView(context: Context?, attrs: AttributeSet?) :
     }
 
     var onTimerFinish: (() -> Unit)? = null
-    private var remainingTime: Int = 3
+    private var remainingTime: Int = 60
 
     fun startTimer() {
         isTimerRunning = true
@@ -210,86 +256,127 @@ class OverlayView(context: Context?, attrs: AttributeSet?) :
 
 
     private fun deadlifts(canvas: Canvas){
+//
+//        // Calculate angles
+//        val rightKneeAngle = calculateAngle(rightHip, rightKnee, rightAnkle) // Right knee joint angle
+//        val roundedRightKneeAngle = round(rightKneeAngle * 100) / 100 // Round to 2 decimal places
+//
+//        // Check if shoulders are behind hips
+//        val shouldersBehindHips = rightShoulder.first < rightHip.first
+//
+//        // Calculate midpoint for displaying text
+//        val kneeMidX = (rightKnee.first + rightAnkle.first) / 2 * imageWidth * scaleFactor
+//        val kneeMidY = (rightKnee.second + rightAnkle.second) / 2 * imageHeight * scaleFactor
+//
+//        // Determine deadlift success
+//        var statusText: String
+//        if (roundedRightKneeAngle > 175 && shouldersBehindHips && succesfulLift == 0) {
+//            // If knees are locked and shoulders are behind hips, mark lift as successful
+//            liftCount++
+//            succesfulLift = 1
+//            statusText = "Lower Weight"
+//        } else if (roundedRightKneeAngle < 160 && !shouldersBehindHips && succesfulLift == 1) {
+//            // If knees are not locked and shoulders are not behind hips, prepare for the next lift
+//            succesfulLift = 0
+//            statusText = "Lift Up"
+//        } else {
+//            // Default status if not meeting the conditions
+//            statusText = if (succesfulLift == 1) "Lower Weight" else "Lift Up"
+//        }
+//
+//        // Display the knee angle
+//        val angleText = "Knee Angle: $roundedRightKneeAngle°"
+//        canvas.drawText(
+//            angleText,
+//            kneeMidX,
+//            kneeMidY,
+//            Paint().apply {
+//                color = Color.WHITE
+//                textSize = 50f
+//                style = Paint.Style.FILL
+//            }
+//        )
+//
+//        // Get canvas height for vertical positioning
+//        val canvasHeight = canvas.height.toFloat()
+//        val padding = 50f // Add padding from the edges
+//
+//        // Display the lift count on the screen
+//        val liftCountText = "Deadlift Count: $liftCount"
+//        canvas.drawText(
+//            liftCountText,
+//            padding, // Position X: left-aligned with padding
+//            canvasHeight - 150f, // Position Y: slightly above the very bottom
+//            Paint().apply {
+//                color = Color.YELLOW
+//                textSize = 50f
+//                style = Paint.Style.FILL
+//            }
+//        )
+//
+//        // Display the status text (Lift Up/Lower Weight)
+//        canvas.drawText(
+//            statusText,
+//            padding, // Position X: left-aligned with padding
+//            canvasHeight - 75f, // Position Y: closer to the bottom
+//            Paint().apply {
+//                color = Color.GREEN
+//                textSize = 50f
+//                style = Paint.Style.FILL
+//            }
+//        )
+    }
 
-        // Calculate angles
-        val rightKneeAngle = calculateAngle(rightHip, rightKnee, rightAnkle) // Right knee joint angle
-        val roundedRightKneeAngle = kotlin.math.round(rightKneeAngle * 100) / 100 // Round to 2 decimal places
-
-        // Check if shoulders are behind hips
-        val shouldersBehindHips = rightShoulder.first < rightHip.first
-
-        // Calculate midpoint for displaying text
-        val kneeMidX = (rightKnee.first + rightAnkle.first) / 2 * imageWidth * scaleFactor
-        val kneeMidY = (rightKnee.second + rightAnkle.second) / 2 * imageHeight * scaleFactor
-
-        // Determine deadlift success
-        var statusText: String
-        if (roundedRightKneeAngle > 175 && shouldersBehindHips && succesfulLift == 0) {
-            // If knees are locked and shoulders are behind hips, mark lift as successful
-            liftCount++
-            succesfulLift = 1
-            statusText = "Lower Weight"
-        } else if (roundedRightKneeAngle < 160 && !shouldersBehindHips && succesfulLift == 1) {
-            // If knees are not locked and shoulders are not behind hips, prepare for the next lift
-            succesfulLift = 0
-            statusText = "Lift Up"
-        } else {
-            // Default status if not meeting the conditions
-            statusText = if (succesfulLift == 1) "Lower Weight" else "Lift Up"
+    fun getMinKneeAngle(kneeAnglesQueue: ArrayDeque<Float>): Float {
+        // Check if the queue is empty
+        if (kneeAnglesQueue.isEmpty()) {
+            return 180.0f // Return a default value (max possible angle) if queue is empty
         }
 
-        // Display the knee angle
-        val angleText = "Knee Angle: $roundedRightKneeAngle°"
-        canvas.drawText(
-            angleText,
-            kneeMidX,
-            kneeMidY,
-            Paint().apply {
-                color = Color.WHITE
-                textSize = 50f
-                style = Paint.Style.FILL
-            }
-        )
+        // Initialize the min value with the first element in the queue
+        var minAngle = kneeAnglesQueue.first()
 
-        // Get canvas height for vertical positioning
-        val canvasHeight = canvas.height.toFloat()
-        val padding = 50f // Add padding from the edges
-
-        // Display the lift count on the screen
-        val liftCountText = "Deadlift Count: $liftCount"
-        canvas.drawText(
-            liftCountText,
-            padding, // Position X: left-aligned with padding
-            canvasHeight - 150f, // Position Y: slightly above the very bottom
-            Paint().apply {
-                color = Color.YELLOW
-                textSize = 50f
-                style = Paint.Style.FILL
+        // Loop through the queue to find the minimum value
+        for (angle in kneeAnglesQueue) {
+            if (angle < minAngle) {
+                minAngle = angle
             }
-        )
+        }
 
-        // Display the status text (Lift Up/Lower Weight)
-        canvas.drawText(
-            statusText,
-            padding, // Position X: left-aligned with padding
-            canvasHeight - 75f, // Position Y: closer to the bottom
-            Paint().apply {
-                color = Color.GREEN
-                textSize = 50f
-                style = Paint.Style.FILL
-            }
-        )
+        return minAngle
+    }
+
+    private fun isGoingUp(): Boolean {
+        if (kneeAnglesQueue.size < 3) return false // Not enough data to determine trend
+
+        val THRESHOLD = 5.0 // Minimum significant change in angle
+
+        // Calculate differences between consecutive elements
+        val differences = kneeAnglesQueue.zipWithNext { a, b -> b - a }
+
+        // Count significant positive slopes
+        val positiveTrendCount = differences.count { it > THRESHOLD }
+
+        // If most of the differences indicate a significant upward trend, return true
+        return positiveTrendCount > differences.size / 2
+    }
+
+
+
+    private fun isGoingDown(): Boolean {
+        if (kneeAnglesQueue.size < 2) return false // Not enough data to detect trend
+        return kneeAnglesQueue.last() < kneeAnglesQueue.first()
     }
 
     private fun squats(canvas: Canvas){
         if (isTimerRunning){
             // Calculate angles
             val angleKnee = calculateAngle(rightHip, rightKnee, rightAnkle) // Right knee joint angle
-            val roundedKneeAngle = kotlin.math.round(angleKnee * 100) / 100 // Round to 2 decimal places
+            val roundedKneeAngle = round(angleKnee * 100) / 100 // Round to 2 decimal places
             //angleMin.add(roundedKneeAngle)
 
             val angleHip = calculateAngle(rightShoulder, rightHip, rightKnee) // Right hip joint angle
-            val roundedHipAngle = kotlin.math.round(angleHip * 100) / 100 // Round to 2 decimal places
+            val roundedHipAngle = round(angleHip * 100) / 100 // Round to 2 decimal places
             //angleMinHip.add(roundedHipAngle)
 
             squatAngles.add(Entry(milliSecLeft.toFloat(), roundedKneeAngle))
@@ -297,6 +384,7 @@ class OverlayView(context: Context?, attrs: AttributeSet?) :
             // Compute complementary angles
             val hipAngle = 180 - roundedHipAngle
             val kneeAngle = roundedKneeAngle
+            addKneeAngle(kneeAngle)
             // Calculate the midpoint for displaying the angle
             val hipMidX = (rightHip.first + rightKnee.first) / 2 * imageWidth * scaleFactor
             val hipMidY =
@@ -304,20 +392,46 @@ class OverlayView(context: Context?, attrs: AttributeSet?) :
 
             var statusText: String
     // Check if the squat was successful and update the lift count and status text
-            if (kneeAngle > 120 && succesfulLift == 0) {
-                // If standing up with knee angle > 160°, reset to indicate a new squat can be counted
-                succesfulLift = 1
-                statusText = "Go Down"
 
-            } else if (kneeAngle < 90 && succesfulLift == 1) {
-                // If squatting down with knee angle < 90°, count a successful squat
-                liftCount = liftCount + 1
-                succesfulLift = 0
-                statusText = "Go Up"
-            } else {
-                // Default status if not at the specific angles
-                statusText = if (succesfulLift == 1) "Go Down" else "Go Up"
+
+            if (kneeAngle > 160 && !succesfulLift) {
+                // display bad lift
+                drawRedCircle(canvas, Landmark.LEFT_EYE.index)
+                succesfulLift = false
             }
+            if (setLift && kneeAngle<160) {
+                setLift = false
+                succesfulLift = false
+            }
+            if (kneeAngle > 160 && finishedLift) {
+                finishedLift = false
+                setLift = true
+                liftCount += 1
+                // display Go Down
+            }
+            if (kneeAngle < 90){
+                finishedLift = true
+                succesfulLift = true
+                // succesfull lift
+                // display Go up
+            }
+            if(isGoingUp() && !finishedLift && !succesfulLift){
+                succesfulLift = false
+            }
+
+            if (!finishedLift && kneeAngle > 90)
+                statusText = "Go down"
+            else
+                statusText = "Go up"
+
+
+
+
+
+
+
+
+
 
             // Display the hip angle text
             val angleText = "Knee Angle: $kneeAngle°"
@@ -383,6 +497,10 @@ class OverlayView(context: Context?, attrs: AttributeSet?) :
             )
         }
 
+        // Check if the damage effect is active
+        if (damageEffectActive) {
+            drawDamageEffect(canvas)
+        }
         results?.let { poseLandmarkerResult ->
 
             for(landmark in poseLandmarkerResult.landmarks()) {
@@ -456,6 +574,30 @@ class OverlayView(context: Context?, attrs: AttributeSet?) :
                 }
             }
         }
+    }
+    private fun drawDamageEffect(canvas: Canvas) {
+        val paint = Paint().apply {
+            color = Color.RED
+            alpha = 150 // Semi-transparent red
+            style = Paint.Style.FILL
+        }
+
+        // Draw a red overlay across the entire canvas
+        canvas.drawRect(0f, 0f, canvas.width.toFloat(), canvas.height.toFloat(), paint)
+
+        // Optionally, add a "crack" or "damage" text
+        val damageText = "Bad Lift!"
+        canvas.drawText(
+            damageText,
+            canvas.width / 2f,
+            canvas.height / 2f,
+            Paint().apply {
+                color = Color.WHITE
+                textSize = 80f
+                textAlign = Paint.Align.CENTER
+                style = Paint.Style.FILL
+            }
+        )
     }
 
     fun setResults(
