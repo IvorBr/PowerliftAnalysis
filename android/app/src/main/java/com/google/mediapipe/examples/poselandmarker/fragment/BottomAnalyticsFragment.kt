@@ -49,7 +49,7 @@ class AnalyticsBottomSheetFragment : BottomSheetDialogFragment() {
         dataSet.setDrawCircles(false)
         dataSet.setDrawValues(false)
         dataSet.setDrawFilled(false)
-        dataSet.mode = LineDataSet.Mode.CUBIC_BEZIER // Adjust mode if needed
+        dataSet.mode = LineDataSet.Mode.CUBIC_BEZIER
 
         val lineData = LineData(dataSet)
         lineChart.data = lineData
@@ -66,7 +66,7 @@ class AnalyticsBottomSheetFragment : BottomSheetDialogFragment() {
 
         lineChart.setDrawBorders(false)
 
-        lineChart.invalidate() // Refresh chart
+        lineChart.invalidate()
     }
 
 }
