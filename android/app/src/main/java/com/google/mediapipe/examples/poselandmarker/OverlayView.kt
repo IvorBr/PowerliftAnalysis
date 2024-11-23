@@ -108,9 +108,7 @@ class OverlayView(context: Context?, attrs: AttributeSet?) :
 
     private var damageEffectActive = false
     private var damageTimer: CountDownTimer? = null
-
-
-    var currentLift: LiftType = LiftType.None
+    
     var currentLift: LiftType = LiftType.Squat
 
     private var timer: CountDownTimer? = null
@@ -331,76 +329,6 @@ class OverlayView(context: Context?, attrs: AttributeSet?) :
 //                style = Paint.Style.FILL
 //            }
 //        )
-    }
-
-        // Calculate angles
-        val rightKneeAngle = calculateAngle(rightHip, rightKnee, rightAnkle) // Right knee joint angle
-        val roundedRightKneeAngle = kotlin.math.round(rightKneeAngle * 100) / 100 // Round to 2 decimal places
-
-        // Check if shoulders are behind hips
-        val shouldersBehindHips = rightShoulder.first < rightHip.first
-
-        // Calculate midpoint for displaying text
-        val kneeMidX = (rightKnee.first + rightAnkle.first) / 2 * imageWidth * scaleFactor
-        val kneeMidY = (rightKnee.second + rightAnkle.second) / 2 * imageHeight * scaleFactor
-
-        // Determine deadlift success
-        var statusText: String
-        if (roundedRightKneeAngle > 175 && shouldersBehindHips && succesfulLift == 0) {
-            // If knees are locked and shoulders are behind hips, mark lift as successful
-            liftCount++
-            succesfulLift = 1
-            statusText = "Lower Weight"
-        } else if (roundedRightKneeAngle < 160 && !shouldersBehindHips && succesfulLift == 1) {
-            // If knees are not locked and shoulders are not behind hips, prepare for the next lift
-            succesfulLift = 0
-            statusText = "Lift Up"
-        } else {
-            // Default status if not meeting the conditions
-            statusText = if (succesfulLift == 1) "Lower Weight" else "Lift Up"
-        }
-
-        // Display the knee angle
-        val angleText = "Knee Angle: $roundedRightKneeAngle°"
-        canvas.drawText(
-            angleText,
-            kneeMidX,
-            kneeMidY,
-            Paint().apply {
-                color = Color.WHITE
-                textSize = 50f
-                style = Paint.Style.FILL
-            }
-        )
-
-        // Get canvas height for vertical positioning
-        val canvasHeight = canvas.height.toFloat()
-        val padding = 50f // Add padding from the edges
-
-        // Display the lift count on the screen
-        val liftCountText = "Deadlift Count: $liftCount"
-        canvas.drawText(
-            liftCountText,
-            padding, // Position X: left-aligned with padding
-            canvasHeight - 150f, // Position Y: slightly above the very bottom
-            Paint().apply {
-                color = Color.YELLOW
-                textSize = 50f
-                style = Paint.Style.FILL
-            }
-        )
-
-        // Display the status text (Lift Up/Lower Weight)
-        canvas.drawText(
-            statusText,
-            padding, // Position X: left-aligned with padding
-            canvasHeight - 75f, // Position Y: closer to the bottom
-            Paint().apply {
-                color = Color.GREEN
-                textSize = 50f
-                style = Paint.Style.FILL
-            }
-        )
     }
 
     private fun squats(canvas: Canvas){
