@@ -28,6 +28,7 @@ import com.google.mediapipe.tasks.vision.poselandmarker.PoseLandmarkerResult
 import kotlin.math.max
 import kotlin.math.min
 import android.os.CountDownTimer
+import android.os.SystemClock
 import com.github.mikephil.charting.data.Entry
 
 import kotlin.math.max
@@ -99,11 +100,10 @@ class OverlayView(context: Context?, attrs: AttributeSet?) :
     private var succesfulLift: Int = 1
     private var liftCount: Int = 0
 
-    var currentLift: LiftType = LiftType.None
+    var currentLift: LiftType = LiftType.Squat
 
     private var timer: CountDownTimer? = null
     private var isTimerRunning = false
-    private var milliSecLeft : Long = 0;
     val squatAngles = ArrayList<Entry>()
 
     private var rightShoulder: Pair<Float, Float> = Pair(0f, 0f)
@@ -140,21 +140,22 @@ class OverlayView(context: Context?, attrs: AttributeSet?) :
     }
 
     var onTimerFinish: (() -> Unit)? = null
-    private var remainingTime: Int = 3
+    private var standardTime: Int = 10
+    private var remainingTime: Int = 0
+    private var EntryCount = 0
 
     fun startTimer() {
         isTimerRunning = true
-        timer = object : CountDownTimer((remainingTime * 1000).toLong(), 1000) {
+        EntryCount = 0
+        timer = object : CountDownTimer((standardTime * 1000).toLong(), 1000) {
             override fun onTick(millisUntilFinished: Long) {
-                milliSecLeft = remainingTime*1000 - millisUntilFinished
-
                 remainingTime = (millisUntilFinished / 1000).toInt()
-                invalidate() // Redraw the view to update the timer
+                invalidate()
             }
 
             override fun onFinish() {
-                remainingTime = 0
                 invalidate()
+                remainingTime = standardTime
                 onTimerFinish?.invoke()
             }
         }.start()
@@ -206,8 +207,6 @@ class OverlayView(context: Context?, attrs: AttributeSet?) :
             )
         }
     }
-
-
 
     private fun deadlifts(canvas: Canvas){
 
@@ -292,8 +291,9 @@ class OverlayView(context: Context?, attrs: AttributeSet?) :
             val roundedHipAngle = kotlin.math.round(angleHip * 100) / 100 // Round to 2 decimal places
             //angleMinHip.add(roundedHipAngle)
 
-            squatAngles.add(Entry(milliSecLeft.toFloat(), roundedKneeAngle))
 
+            squatAngles.add(Entry(EntryCount.toFloat(), roundedKneeAngle/180f))
+            EntryCount += 1
             // Compute complementary angles
             val hipAngle = 180 - roundedHipAngle
             val kneeAngle = roundedKneeAngle
