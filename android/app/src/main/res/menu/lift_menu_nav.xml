@@ -3,17 +3,17 @@
 
     <item
         android:id="@+id/action_squat"
-        android:icon="@drawable/ic_baseline_photo_camera_24"
+        android:icon="@drawable/squat"
         android:title="@string/menu_squat" />
 
     <item
         android:id="@+id/action_benchpress"
-        android:icon="@drawable/ic_baseline_photo_camera_24"
+        android:icon="@drawable/benchpress"
         android:title="@string/menu_benchpress" />
 
     <item
         android:id="@+id/action_deadlift"
-        android:icon="@drawable/ic_baseline_photo_camera_24"
+        android:icon="@drawable/deadlift"
         android:title="@string/menu_deadlift" />
 
 </menu>

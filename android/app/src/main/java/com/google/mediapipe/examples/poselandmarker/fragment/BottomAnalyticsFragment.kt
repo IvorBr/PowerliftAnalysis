@@ -16,7 +16,7 @@ import kotlin.math.sin
 
 class AnalyticsBottomSheetFragment : BottomSheetDialogFragment() {
     private lateinit var lineChart: LineChart
-    private var kneeAngles: ArrayList<Entry>? = null
+    private var squatAngles: ArrayList<Entry>? = null
     var onDismissCallback: (() -> Unit)? = null
 
     override fun onDismiss(dialog: DialogInterface) {
@@ -25,8 +25,7 @@ class AnalyticsBottomSheetFragment : BottomSheetDialogFragment() {
     }
 
     fun setKneeAngles(data: ArrayList<Entry>) {
-        println(data)
-        kneeAngles = data
+        squatAngles = data
     }
 
     override fun onCreateView(
@@ -42,17 +41,8 @@ class AnalyticsBottomSheetFragment : BottomSheetDialogFragment() {
     }
 
     private fun setupChart() {
-
-//        val entries = ArrayList<Entry>()
-//
-//        // Mock sinusoidal data
-//        for (i in 0..100) {
-//            val x = i / 10f
-//            val y = sin(x.toDouble()).toFloat() * 100 + 300
-//            entries.add(Entry(x, y))
-//        }
-
-        val dataSet = LineDataSet(kneeAngles, "")
+        // Use the mock data
+        val dataSet = LineDataSet(squatAngles, "")
         dataSet.color = Color.parseColor("#00FF00")
         dataSet.lineWidth = 4f
         dataSet.valueTextSize = 0f
