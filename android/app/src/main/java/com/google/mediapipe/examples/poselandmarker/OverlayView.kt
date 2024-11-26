@@ -103,7 +103,7 @@ class OverlayView(context: Context?, attrs: AttributeSet?) :
     var currentLift: LiftType = LiftType.Squat
 
     private var timer: CountDownTimer? = null
-    private var isTimerRunning = false
+    var isTimerRunning = false
     val squatAngles = ArrayList<Entry>()
 
     private var rightShoulder: Pair<Float, Float> = Pair(0f, 0f)
@@ -139,27 +139,9 @@ class OverlayView(context: Context?, attrs: AttributeSet?) :
         pointPaint.style = Paint.Style.FILL
     }
 
-    var onTimerFinish: (() -> Unit)? = null
-    private var standardTime: Int = 10
+    var standardTime: Int = 10
     private var remainingTime: Int = 0
-    private var EntryCount = 0
-
-    fun startTimer() {
-        isTimerRunning = true
-        EntryCount = 0
-        timer = object : CountDownTimer((standardTime * 1000).toLong(), 1000) {
-            override fun onTick(millisUntilFinished: Long) {
-                remainingTime = (millisUntilFinished / 1000).toInt()
-                invalidate()
-            }
-
-            override fun onFinish() {
-                invalidate()
-                remainingTime = standardTime
-                onTimerFinish?.invoke()
-            }
-        }.start()
-    }
+    var EntryCount = 0
 
     private fun drawRedCircle(canvas: Canvas, landmarkerID: Int) {
         results?.let { poseLandmarkerResult ->
@@ -367,22 +349,6 @@ class OverlayView(context: Context?, attrs: AttributeSet?) :
     }
     override fun draw(canvas: Canvas) {
         super.draw(canvas)
-        if (isTimerRunning) {
-            val timerText = "Time Left: $remainingTime s"
-            val canvasWidth = canvas.width.toFloat()
-            val padding = 50f // Padding from the edges
-            canvas.drawText(
-                timerText,
-                canvasWidth - padding - 300f, // Position X: right-aligned with padding
-                padding + 50f, // Position Y: slightly below the top
-                Paint().apply {
-                    color = Color.RED
-                    textSize = 50f
-                    style = Paint.Style.FILL
-                }
-            )
-        }
-
         results?.let { poseLandmarkerResult ->
 
             for(landmark in poseLandmarkerResult.landmarks()) {

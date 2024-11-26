@@ -15,9 +15,14 @@
  */
 package com.google.mediapipe.examples.poselandmarker.fragment
 
+import android.animation.Animator
+import android.animation.AnimatorListenerAdapter
+import android.animation.ObjectAnimator
 import android.annotation.SuppressLint
 import android.content.res.Configuration
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.os.Parcelable
 import android.util.Log
 import android.view.LayoutInflater
@@ -32,12 +37,14 @@ import androidx.camera.core.ImageProxy
 import androidx.camera.core.Camera
 import androidx.camera.core.AspectRatio
 import androidx.camera.lifecycle.ProcessCameraProvider
+import androidx.core.animation.doOnEnd
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.navigation.Navigation
 import com.github.mikephil.charting.data.Entry
 import com.google.android.material.animation.AnimationUtils
+import com.google.android.material.progressindicator.CircularProgressIndicator
 import com.google.mediapipe.examples.poselandmarker.LiftType
 import com.google.mediapipe.examples.poselandmarker.PoseLandmarkerHelper
 import com.google.mediapipe.examples.poselandmarker.MainViewModel
@@ -45,6 +52,7 @@ import com.google.mediapipe.examples.poselandmarker.R
 import com.google.mediapipe.examples.poselandmarker.fragment.AnalyticsBottomSheetFragment
 import com.google.mediapipe.examples.poselandmarker.databinding.FragmentCameraBinding
 import com.google.mediapipe.tasks.vision.core.RunningMode
+import kotlinx.coroutines.delay
 import java.util.Locale
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
@@ -165,13 +173,36 @@ class CameraFragment : Fragment(), PoseLandmarkerHelper.LandmarkerListener {
 
         val startButton = fragmentCameraBinding.startButton
         val bottomNavigationView = fragmentCameraBinding.bottomNavigation
-
-        fragmentCameraBinding.overlay.onTimerFinish = {
-            showAnalyticsModal()
-        }
+        val circularIndicator = fragmentCameraBinding.circularIndicator
+        val handler = Handler(Looper.getMainLooper())
+        var progressStatus = 0
+        val totalDuration = fragmentCameraBinding.overlay.standardTime*1000
+        val updateInterval = 50
 
         startButton.setOnClickListener {
-            fragmentCameraBinding.overlay.startTimer()
+            circularIndicator.max = totalDuration / updateInterval
+
+            fragmentCameraBinding.overlay.isTimerRunning = true
+            circularIndicator.show()
+            handler.post(object : Runnable {
+                override fun run() {
+                    if (progressStatus <= circularIndicator.max) {
+                        // Update progress with built-in animation
+                        circularIndicator.setProgressCompat(progressStatus, true)
+                        progressStatus++
+                        handler.postDelayed(this, updateInterval.toLong())
+                    } else {
+                        // Hide the progress indicator with built-in animation
+                        fragmentCameraBinding.overlay.EntryCount = 0
+                        fragmentCameraBinding.overlay.isTimerRunning = false
+                        circularIndicator.hide()
+                        Handler(Looper.getMainLooper()).postDelayed({
+                            showAnalyticsModal()
+                        }, 500)
+                    }
+                }
+            })
+
             startButton.animate()
                 .alpha(0f)
                 .setDuration(300)
@@ -219,6 +250,20 @@ class CameraFragment : Fragment(), PoseLandmarkerHelper.LandmarkerListener {
                 currentDelegate = viewModel.currentDelegate,
                 poseLandmarkerHelperListener = this
             )
+        }
+    }
+
+    private fun animateProgress(
+        circularIndicator: CircularProgressIndicator,
+        durationMs: Long
+    ) {
+        circularIndicator.show()
+        ObjectAnimator.ofInt(circularIndicator, "progress", 0, circularIndicator.max).apply {
+            duration = durationMs
+            interpolator = android.view.animation.AccelerateDecelerateInterpolator()
+            start()
+        }.doOnEnd {
+            circularIndicator.hide()
         }
     }
 
