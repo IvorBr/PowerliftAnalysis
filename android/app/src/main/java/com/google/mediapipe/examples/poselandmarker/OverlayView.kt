@@ -100,7 +100,8 @@ class OverlayView(context: Context?, attrs: AttributeSet?) :
     private var imageHeight: Int = 1
 
 
-    private var succesfulLift: Int = 1
+    private var succesfulLift: Boolean = false
+    private var triggered: Boolean = false
     private var liftCount: Int = 0
 
     private var finishedLift: Boolean = false
@@ -108,6 +109,8 @@ class OverlayView(context: Context?, attrs: AttributeSet?) :
 
     private var damageEffectActive = false
     private var damageTimer: CountDownTimer? = null
+
+    private var drawTracking: Boolean = true
     
     var currentLift: LiftType = LiftType.Squat
 
@@ -140,18 +143,6 @@ class OverlayView(context: Context?, attrs: AttributeSet?) :
         initPaints()
         stopTimer()
     }
-    fun getLastKneeAngles(): List<Float> {
-        return kneeAnglesQueue.toList() // Returns a snapshot of the current angles
-    }
-    private fun addKneeAngle(angle: Float) {
-        if (kneeAnglesQueue.size >= 10) {
-            // Remove the oldest angle if the queue already has 10 elements
-            kneeAnglesQueue.removeFirst()
-        }
-        // Add the new angle to the queue
-        kneeAnglesQueue.addLast(angle)
-    }
-
 
     private fun triggerDamageEffect() {
         damageEffectActive = true
@@ -260,75 +251,7 @@ class OverlayView(context: Context?, attrs: AttributeSet?) :
 
 
     private fun deadlifts(canvas: Canvas){
-//
-//        // Calculate angles
-//        val rightKneeAngle = calculateAngle(rightHip, rightKnee, rightAnkle) // Right knee joint angle
-//        val roundedRightKneeAngle = round(rightKneeAngle * 100) / 100 // Round to 2 decimal places
-//
-//        // Check if shoulders are behind hips
-//        val shouldersBehindHips = rightShoulder.first < rightHip.first
-//
-//        // Calculate midpoint for displaying text
-//        val kneeMidX = (rightKnee.first + rightAnkle.first) / 2 * imageWidth * scaleFactor
-//        val kneeMidY = (rightKnee.second + rightAnkle.second) / 2 * imageHeight * scaleFactor
-//
-//        // Determine deadlift success
-//        var statusText: String
-//        if (roundedRightKneeAngle > 175 && shouldersBehindHips && succesfulLift == 0) {
-//            // If knees are locked and shoulders are behind hips, mark lift as successful
-//            liftCount++
-//            succesfulLift = 1
-//            statusText = "Lower Weight"
-//        } else if (roundedRightKneeAngle < 160 && !shouldersBehindHips && succesfulLift == 1) {
-//            // If knees are not locked and shoulders are not behind hips, prepare for the next lift
-//            succesfulLift = 0
-//            statusText = "Lift Up"
-//        } else {
-//            // Default status if not meeting the conditions
-//            statusText = if (succesfulLift == 1) "Lower Weight" else "Lift Up"
-//        }
-//
-//        // Display the knee angle
-//        val angleText = "Knee Angle: $roundedRightKneeAngle°"
-//        canvas.drawText(
-//            angleText,
-//            kneeMidX,
-//            kneeMidY,
-//            Paint().apply {
-//                color = Color.WHITE
-//                textSize = 50f
-//                style = Paint.Style.FILL
-//            }
-//        )
-//
-//        // Get canvas height for vertical positioning
-//        val canvasHeight = canvas.height.toFloat()
-//        val padding = 50f // Add padding from the edges
-//
-//        // Display the lift count on the screen
-//        val liftCountText = "Deadlift Count: $liftCount"
-//        canvas.drawText(
-//            liftCountText,
-//            padding, // Position X: left-aligned with padding
-//            canvasHeight - 150f, // Position Y: slightly above the very bottom
-//            Paint().apply {
-//                color = Color.YELLOW
-//                textSize = 50f
-//                style = Paint.Style.FILL
-//            }
-//        )
-//
-//        // Display the status text (Lift Up/Lower Weight)
-//        canvas.drawText(
-//            statusText,
-//            padding, // Position X: left-aligned with padding
-//            canvasHeight - 75f, // Position Y: closer to the bottom
-//            Paint().apply {
-//                color = Color.GREEN
-//                textSize = 50f
-//                style = Paint.Style.FILL
-//            }
-//        )
+
     }
 
     private fun squats(canvas: Canvas){
@@ -355,23 +278,40 @@ class OverlayView(context: Context?, attrs: AttributeSet?) :
                 (rightHip.second + rightKnee.second) / 2 * imageHeight * scaleFactor
 
             var statusText: String
-    // Check if the squat was successful and update the lift count and status text
-            if (kneeAngle > 120 && succesfulLift == 0) {
-                // If standing up with knee angle > 160°, reset to indicate a new squat can be counted
-                succesfulLift = 1
-                statusText = "Go Down"
 
-            } else if (kneeAngle < 90 && succesfulLift == 1) {
-                // If squatting down with knee angle < 90°, count a successful squat
-                liftCount = liftCount + 1
-                succesfulLift = 0
-                statusText = "Go Up"
-            } else {
-                // Default status if not at the specific angles
-                statusText = if (succesfulLift == 1) "Go Down" else "Go Up"
+            if (kneeAngle > 160 && !succesfulLift && !triggered){
+                triggerDamageEffect()
+                triggered = true
+            //drawRedCircle(canvas, Landmark.LEFT_EYE.index)
             }
 
-            // Display the hip angle text
+            if (triggered) {
+                triggered = false
+            }
+
+            if (setLift && kneeAngle < 160){
+                setLift = false
+                succesfulLift = false
+                damageEffectActive = false
+            }
+
+            if (kneeAngle > 160 && finishedLift){
+                finishedLift = false
+                setLift = true
+                liftCount += 1
+            }
+
+            if (kneeAngle < 60){
+                finishedLift = true
+                succesfulLift = true
+            }
+
+            if (!finishedLift && kneeAngle > 90){
+                statusText = "Go down"
+            }
+            else
+                statusText = "Go up"
+
             val angleText = "Knee Angle: $kneeAngle°"
             canvas.drawText(
                 angleText,
@@ -442,23 +382,29 @@ class OverlayView(context: Context?, attrs: AttributeSet?) :
         results?.let { poseLandmarkerResult ->
 
             for(landmark in poseLandmarkerResult.landmarks()) {
-                //for(normalizedLandmark in landmark) {
-                //    canvas.drawPoint(
-                //        normalizedLandmark.x() * imageWidth * scaleFactor,
-                //        normalizedLandmark.y() * imageHeight * scaleFactor,
-                //        pointPaint
-                //    )
-                //}
+                if (drawTracking) {
+                    for (normalizedLandmark in landmark) {
+                        canvas.drawPoint(
+                            normalizedLandmark.x() * imageWidth * scaleFactor,
+                            normalizedLandmark.y() * imageHeight * scaleFactor,
+                            pointPaint
+                        )
+                    }
 
-                //PoseLandmarker.POSE_LANDMARKS.forEach {
-                //    canvas.drawLine(
-                //        poseLandmarkerResult.landmarks().get(0).get(it!!.start()).x() * imageWidth * scaleFactor,
-                //        poseLandmarkerResult.landmarks().get(0).get(it.start()).y() * imageHeight * scaleFactor,
-                //        poseLandmarkerResult.landmarks().get(0).get(it.end()).x() * imageWidth * scaleFactor,
-                //        poseLandmarkerResult.landmarks().get(0).get(it.end()).y() * imageHeight * scaleFactor,
-                //        linePaint)
-                //}
-
+                    PoseLandmarker.POSE_LANDMARKS.forEach {
+                        canvas.drawLine(
+                            poseLandmarkerResult.landmarks().get(0).get(it!!.start())
+                                .x() * imageWidth * scaleFactor,
+                            poseLandmarkerResult.landmarks().get(0).get(it.start())
+                                .y() * imageHeight * scaleFactor,
+                            poseLandmarkerResult.landmarks().get(0).get(it.end())
+                                .x() * imageWidth * scaleFactor,
+                            poseLandmarkerResult.landmarks().get(0).get(it.end())
+                                .y() * imageHeight * scaleFactor,
+                            linePaint
+                        )
+                    }
+                }
                 rightShoulder = Pair(
                     poseLandmarkerResult.landmarks().get(0).get(Landmark.RIGHT_SHOULDER.index).x(),
                     poseLandmarkerResult.landmarks().get(0).get(Landmark.RIGHT_SHOULDER.index).y()
