@@ -173,35 +173,11 @@ class CameraFragment : Fragment(), PoseLandmarkerHelper.LandmarkerListener {
 
         val startButton = fragmentCameraBinding.startButton
         val bottomNavigationView = fragmentCameraBinding.bottomNavigation
-        val circularIndicator = fragmentCameraBinding.circularIndicator
-        val handler = Handler(Looper.getMainLooper())
-        var progressStatus = 0
-        val totalDuration = fragmentCameraBinding.overlay.standardTime*1000
-        val updateInterval = 50
 
         startButton.setOnClickListener {
-            circularIndicator.max = totalDuration / updateInterval
-
-            fragmentCameraBinding.overlay.isTimerRunning = true
-            circularIndicator.show()
-            handler.post(object : Runnable {
-                override fun run() {
-                    if (progressStatus <= circularIndicator.max) {
-                        // Update progress with built-in animation
-                        circularIndicator.setProgressCompat(progressStatus, true)
-                        progressStatus++
-                        handler.postDelayed(this, updateInterval.toLong())
-                    } else {
-                        // Hide the progress indicator with built-in animation
-                        fragmentCameraBinding.overlay.EntryCount = 0
-                        fragmentCameraBinding.overlay.isTimerRunning = false
-                        circularIndicator.hide()
-                        Handler(Looper.getMainLooper()).postDelayed({
-                            showAnalyticsModal()
-                        }, 500)
-                    }
-                }
-            })
+            startCountdown(listOf("3", "2", "1", "GO!")){
+                startTimer()
+            }
 
             startButton.animate()
                 .alpha(0f)
@@ -253,17 +229,75 @@ class CameraFragment : Fragment(), PoseLandmarkerHelper.LandmarkerListener {
         }
     }
 
-    private fun animateProgress(
-        circularIndicator: CircularProgressIndicator,
-        durationMs: Long
-    ) {
+    private fun startTimer() {
+        val circularIndicator = fragmentCameraBinding.circularIndicator
+        val handler = Handler(Looper.getMainLooper())
+        var progressStatus = 0
+        val totalDuration = fragmentCameraBinding.overlay.standardTime*1000
+        val updateInterval = 50
+
+        circularIndicator.max = totalDuration / updateInterval
+
+        fragmentCameraBinding.overlay.isTimerRunning = true
         circularIndicator.show()
-        ObjectAnimator.ofInt(circularIndicator, "progress", 0, circularIndicator.max).apply {
-            duration = durationMs
-            interpolator = android.view.animation.AccelerateDecelerateInterpolator()
-            start()
-        }.doOnEnd {
-            circularIndicator.hide()
+        handler.post(object : Runnable {
+            override fun run() {
+                if (progressStatus <= circularIndicator.max) {
+                    circularIndicator.setProgressCompat(progressStatus, true)
+                    progressStatus++
+                    handler.postDelayed(this, updateInterval.toLong())
+
+                    if (progressStatus == circularIndicator.max - 60) {
+                        startCountdown(listOf("3", "2", "1", "FINISHED!")){}
+                    }
+                } else {
+                    fragmentCameraBinding.overlay.EntryCount = 0
+                    fragmentCameraBinding.overlay.isTimerRunning = false
+                    circularIndicator.hide()
+                    Handler(Looper.getMainLooper()).postDelayed({
+                        showAnalyticsModal()
+                    }, 500)
+                }
+            }
+        })
+    }
+
+    private fun startCountdown(countdownValues: List<String>, onCountdownFinish: () -> Unit) {
+        val countdownText = fragmentCameraBinding.countdownText
+        val interval = 1000L // Total time per step in milliseconds
+
+        countdownText.visibility = View.VISIBLE
+
+        for (i in countdownValues.indices) {
+            val delay = i * interval
+
+            Handler(Looper.getMainLooper()).postDelayed({
+                countdownText.text = countdownValues[i]
+
+                // Scale up and fade in
+                countdownText.scaleX = 1f
+                countdownText.scaleY = 1f
+                countdownText.alpha = 1f
+
+                countdownText.animate()
+                    .scaleX(1.5f)
+                    .scaleY(1.5f)
+                    .alpha(1f)
+                    .setDuration(500) // Half of the interval for the animation to scale up
+                    .withEndAction {
+                        countdownText.animate()
+                            .alpha(0f) // Fade out
+                            .setDuration(500) // Second half of the interval for fading out
+                            .withEndAction {
+                                if (i == countdownValues.size - 1) {
+                                    // On the final step ("GO!" or "FINISHED!"), invoke the callback
+                                    onCountdownFinish()
+                                }
+                            }
+                            .start()
+                    }
+                    .start()
+            }, delay)
         }
     }
 
