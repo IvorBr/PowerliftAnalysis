@@ -128,9 +128,13 @@ class CameraFragment : Fragment(), PoseLandmarkerHelper.LandmarkerListener {
         return fragmentCameraBinding.root
     }
 
+
     private fun showAnalyticsModal() {
+
         val modalBottomSheet = AnalyticsBottomSheetFragment()
+
         modalBottomSheet.setKneeAngles(fragmentCameraBinding.overlay.squatAngles)
+        modalBottomSheet.setLiftCount(fragmentCameraBinding.overlay.liftCount)
 
         modalBottomSheet.onDismissCallback = {
             val bottomNavigationView = fragmentCameraBinding.bottomNavigation

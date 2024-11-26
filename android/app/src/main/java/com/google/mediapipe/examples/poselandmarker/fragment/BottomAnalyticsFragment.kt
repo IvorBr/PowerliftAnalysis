@@ -18,6 +18,7 @@ class AnalyticsBottomSheetFragment : BottomSheetDialogFragment() {
     private lateinit var lineChart: LineChart
     private var squatAngles: ArrayList<Entry>? = null
     var onDismissCallback: (() -> Unit)? = null
+    private var liftCount: Int = 0
 
     override fun onDismiss(dialog: DialogInterface) {
         super.onDismiss(dialog)
@@ -26,6 +27,10 @@ class AnalyticsBottomSheetFragment : BottomSheetDialogFragment() {
 
     fun setKneeAngles(data: ArrayList<Entry>) {
         squatAngles = data
+    }
+
+    fun setLiftCount(data: Int){
+        liftCount = data
     }
 
     override fun onCreateView(
@@ -37,8 +42,16 @@ class AnalyticsBottomSheetFragment : BottomSheetDialogFragment() {
         lineChart = view.findViewById(R.id.lineChart)
         setupChart()
 
+        setupLifts()
+
+
         return view
     }
+
+    private fun setupLifts(){
+
+    }
+
 
     private fun setupChart() {
         // Use the mock data
