@@ -294,7 +294,7 @@ class OverlayView(context: Context?, attrs: AttributeSet?) :
                 triggered = true
             }
 
-            if (triggered) {
+            if (triggered && roundedKneeAngle < 160) {
                 triggered = false
             }
 
