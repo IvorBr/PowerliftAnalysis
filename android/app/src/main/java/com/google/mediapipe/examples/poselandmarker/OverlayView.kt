@@ -119,7 +119,8 @@ class OverlayView(context: Context?, attrs: AttributeSet?) :
     private var milliSecLeft : Long = 0;
     val squatAngles = ArrayList<Entry>()
 
-    private val kneeAnglesQueue: ArrayDeque<Float> = ArrayDeque()
+    private var roundedHipAngle: Float = 0f
+    private var roundedKneeAngle: Float = 0f
 
 
     private var rightShoulder: Pair<Float, Float> = Pair(0f, 0f)
@@ -248,109 +249,79 @@ class OverlayView(context: Context?, attrs: AttributeSet?) :
         }
     }
 
+    private fun drawText(canvas: Canvas, text: String, x: Float, y: Float, color: Int, textSize: Float) {
+        val paint = Paint().apply {
+            this.color = color
+            this.textSize = textSize
+            this.style = Paint.Style.FILL
+        }
+        canvas.drawText(text, x, y, paint)
+    }
+
+    private fun calculateAngles() {
+        // Calculate the knee and hip angles
+        val kneeAngle = calculateAngle(rightHip, rightKnee, rightAnkle)
+        val hipAngle = calculateAngle(rightShoulder, rightHip, rightKnee)
+
+        roundedKneeAngle = kotlin.math.round(kneeAngle * 100) / 100 // Round to 2 decimal places
+        roundedHipAngle = kotlin.math.round(hipAngle * 100) / 100
+
+        squatAngles.add(Entry(milliSecLeft.toFloat(), roundedKneeAngle))
+        squatAngles.add(Entry(EntryCount.toFloat(), roundedKneeAngle / 180f))
+        EntryCount += 1
+    }
+
 
 
     private fun deadlifts(canvas: Canvas){
-
     }
 
     private fun squats(canvas: Canvas){
         if (isTimerRunning){
             // Calculate angles
-            val angleKnee = calculateAngle(rightHip, rightKnee, rightAnkle) // Right knee joint angle
-            val roundedKneeAngle = kotlin.math.round(angleKnee * 100) / 100 // Round to 2 decimal places
-            //angleMin.add(roundedKneeAngle)
+            calculateAngles()
 
-            val angleHip = calculateAngle(rightShoulder, rightHip, rightKnee) // Right hip joint angle
-            val roundedHipAngle = kotlin.math.round(angleHip * 100) / 100 // Round to 2 decimal places
-            //angleMinHip.add(roundedHipAngle)
-
-            squatAngles.add(Entry(milliSecLeft.toFloat(), roundedKneeAngle))
-
-            squatAngles.add(Entry(EntryCount.toFloat(), roundedKneeAngle/180f))
-            EntryCount += 1
-            // Compute complementary angles
-            val hipAngle = 180 - roundedHipAngle
-            val kneeAngle = roundedKneeAngle
-            // Calculate the midpoint for displaying the angle
+            // Display angles
             val hipMidX = (rightHip.first + rightKnee.first) / 2 * imageWidth * scaleFactor
-            val hipMidY =
-                (rightHip.second + rightKnee.second) / 2 * imageHeight * scaleFactor
+            val hipMidY = (rightHip.second + rightKnee.second) / 2 * imageHeight * scaleFactor
+            val angleText = "Knee Angle: $roundedKneeAngle°"
+            drawText(canvas, angleText, hipMidX, hipMidY, Color.WHITE, 50f)
 
+            // Determine the status of the squat
             var statusText: String
-
-            if (kneeAngle > 160 && !succesfulLift && !triggered){
+            if (roundedKneeAngle > 160 && !succesfulLift && !triggered) {
                 triggerDamageEffect()
                 triggered = true
-            //drawRedCircle(canvas, Landmark.LEFT_EYE.index)
             }
 
             if (triggered) {
                 triggered = false
             }
 
-            if (setLift && kneeAngle < 160){
+            if (setLift && roundedKneeAngle < 160) {
                 setLift = false
                 succesfulLift = false
                 damageEffectActive = false
             }
 
-            if (kneeAngle > 160 && finishedLift){
+            if (roundedKneeAngle > 160 && finishedLift) {
                 finishedLift = false
                 setLift = true
                 liftCount += 1
             }
 
-            if (kneeAngle < 60){
+            if (roundedKneeAngle < 60) {
                 finishedLift = true
                 succesfulLift = true
             }
 
-            if (!finishedLift && kneeAngle > 90){
-                statusText = "Go down"
-            }
-            else
-                statusText = "Go up"
+            statusText = if (!finishedLift && roundedKneeAngle > 90) "Go down" else "Go up"
 
-            val angleText = "Knee Angle: $kneeAngle°"
-            canvas.drawText(
-                angleText,
-                hipMidX,
-                hipMidY,
-                Paint().apply {
-                    color = Color.WHITE
-                    textSize = 50f
-                    style = Paint.Style.FILL
-                }
-            )
-            // Get canvas height for vertical positioning
+            // Display lift count and status
             val canvasHeight = canvas.height.toFloat()
-            val padding = 50f // Add padding from the edges
-            // Display the lift count on the screen
-            val liftCountText = "Squat Count: $liftCount"
-            canvas.drawText(
-                liftCountText,
-                padding, // Position X: left-aligned with padding
-                canvasHeight - 220f, // Position Y: slightly above the very bottom
-                Paint().apply {
-                    color = Color.YELLOW
-                    textSize = 50f
-                    style = Paint.Style.FILL
-                }
-            )
-            drawRedCircle(canvas, Landmark.LEFT_KNEE.index)
-            // Display the status text (Go Up/Go Down) on the screen
-    // Display the status text below the lift count
-            canvas.drawText(
-                statusText,
-                padding, // Position X: left-aligned with padding
-                canvasHeight - 280f, // Position Y: closer to the bottom
-                Paint().apply {
-                    color = Color.GREEN
-                    textSize = 50f
-                    style = Paint.Style.FILL
-                }
-            )
+            val padding = 50f
+            drawText(canvas, "Squat Count: $liftCount", padding, canvasHeight - 220f, Color.YELLOW, 50f)
+            drawText(canvas, statusText, padding, canvasHeight - 280f, Color.GREEN, 50f)
         }
     }
 
