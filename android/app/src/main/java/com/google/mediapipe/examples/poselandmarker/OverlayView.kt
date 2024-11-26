@@ -119,12 +119,11 @@ class OverlayView(context: Context?, attrs: AttributeSet?) :
     private var damageTimer: CountDownTimer? = null
 
     private var drawTracking: Boolean = true
-    
+
     var currentLift: LiftType = LiftType.Squat
 
     private var timer: CountDownTimer? = null
-    private var isTimerRunning = false
-    private var milliSecLeft : Long = 0;
+    var isTimerRunning = false
     val squatAngles = ArrayList<Entry>()
 
     private var roundedHipAngle: Float = 0f
@@ -165,30 +164,9 @@ class OverlayView(context: Context?, attrs: AttributeSet?) :
         pointPaint.style = Paint.Style.FILL
     }
 
-    var onTimerFinish: (() -> Unit)? = null
-    private var standardTime: Int = 10
+    var standardTime: Int = 10
     private var remainingTime: Int = 0
-    private var EntryCount = 0
-
-    fun startTimer() {
-        isTimerRunning = true
-        EntryCount = 0
-        timer = object : CountDownTimer((standardTime * 1000).toLong(), 1000) {
-            override fun onTick(millisUntilFinished: Long) {
-                milliSecLeft = remainingTime*1000 - millisUntilFinished
-
-                remainingTime = (millisUntilFinished / 1000).toInt()
-                invalidate()
-            }
-
-            override fun onFinish() {
-                remainingTime = 0
-                invalidate()
-                remainingTime = standardTime
-                onTimerFinish?.invoke()
-            }
-        }.start()
-    }
+    var EntryCount = 0
 
     private fun drawRedCircle(canvas: Canvas, landmarkerID: Int) {
         results?.let { poseLandmarkerResult ->
