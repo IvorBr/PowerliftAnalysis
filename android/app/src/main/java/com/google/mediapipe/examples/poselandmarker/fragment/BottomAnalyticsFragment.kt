@@ -29,6 +29,10 @@ class AnalyticsBottomSheetFragment : BottomSheetDialogFragment() {
         dataPoints = data
     }
 
+    fun setLiftCount(data: Int){
+        liftCount = data
+    }
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -38,8 +42,16 @@ class AnalyticsBottomSheetFragment : BottomSheetDialogFragment() {
         lineChart = view.findViewById(R.id.lineChart)
         setupChart()
 
+        setupLifts()
+
+
         return view
     }
+
+    private fun setupLifts(){
+
+    }
+
 
     private fun setupChart() {
         val dataSet = LineDataSet(dataPoints, "")
@@ -89,4 +101,5 @@ class AnalyticsBottomSheetFragment : BottomSheetDialogFragment() {
 
         lineChart.invalidate()
     }
+
 }

@@ -15,10 +15,17 @@
  */
 package com.google.mediapipe.examples.poselandmarker
 
+import android.animation.ValueAnimator
 import android.content.Context
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
+import android.graphics.PorterDuff
+import android.graphics.PorterDuffXfermode
+import android.graphics.RadialGradient
+import android.graphics.Shader
 import android.util.AttributeSet
 import android.view.View
 import androidx.core.content.ContextCompat
@@ -90,7 +97,7 @@ fun calculateAngle(a: Pair<Float, Float>, b: Pair<Float, Float>, c: Pair<Float, 
 
 class OverlayView(context: Context?, attrs: AttributeSet?) :
     View(context, attrs) {
-
+    private var damageAlpha = 0f  // This will control the transparency of the damage effect
     private var results: PoseLandmarkerResult? = null
     private var pointPaint = Paint()
     private var linePaint = Paint()
@@ -102,7 +109,8 @@ class OverlayView(context: Context?, attrs: AttributeSet?) :
 
     private var succesfulLift: Boolean = false
     private var triggered: Boolean = false
-    private var liftCount: Int = 0
+
+    var liftCount: Int = 0
 
     private var finishedLift: Boolean = false
     private var setLift: Boolean = false
@@ -144,26 +152,6 @@ class OverlayView(context: Context?, attrs: AttributeSet?) :
         stopTimer()
     }
 
-    private fun triggerDamageEffect() {
-        damageEffectActive = true
-
-        // Cancel any existing timer to avoid overlapping
-        damageTimer?.cancel()
-
-        // Start a 1-second timer
-        damageTimer = object : CountDownTimer(1000, 1000) {
-            override fun onTick(millisUntilFinished: Long) {
-                // Nothing needed here for this effect
-            }
-
-            override fun onFinish() {
-                damageEffectActive = false
-                invalidate() // Redraw to remove the effect
-            }
-        }.start()
-
-        invalidate() // Trigger a redraw to show the damage effect immediately
-    }
 
     private fun initPaints() {
         linePaint.color =
@@ -244,9 +232,9 @@ class OverlayView(context: Context?, attrs: AttributeSet?) :
         roundedKneeAngle = kotlin.math.round(kneeAngle * 100) / 100 // Round to 2 decimal places
         roundedHipAngle = kotlin.math.round(hipAngle * 100) / 100
 
-        squatAngles.add(Entry(EntryCount.toFloat(), roundedKneeAngle / 180f))
-        EntryCount += 1
     }
+
+
 
     private fun deadlifts(canvas: Canvas){
     }
@@ -256,6 +244,8 @@ class OverlayView(context: Context?, attrs: AttributeSet?) :
             // Calculate angles
             calculateAngles()
 
+            squatAngles.add(Entry(EntryCount.toFloat(), roundedKneeAngle / 180f))
+            EntryCount += 1
             // Display angles
             val hipMidX = (rightHip.first + rightKnee.first) / 2 * imageWidth * scaleFactor
             val hipMidY = (rightHip.second + rightKnee.second) / 2 * imageHeight * scaleFactor
@@ -276,7 +266,6 @@ class OverlayView(context: Context?, attrs: AttributeSet?) :
             if (setLift && roundedKneeAngle < 160) {
                 setLift = false
                 succesfulLift = false
-                damageEffectActive = false
             }
 
             if (roundedKneeAngle > 160 && finishedLift) {
@@ -303,12 +292,28 @@ class OverlayView(context: Context?, attrs: AttributeSet?) :
     private fun stopTimer() {
         timer?.cancel()
     }
+
     override fun draw(canvas: Canvas) {
         super.draw(canvas)
+        if (isTimerRunning) {
+            val timerText = "Time Left: $remainingTime s"
+            val canvasWidth = canvas.width.toFloat()
+            val padding = 50f // Padding from the edges
+            canvas.drawText(
+                timerText,
+                canvasWidth - padding - 300f, // Position X: right-aligned with padding
+                padding + 50f, // Position Y: slightly below the top
+                Paint().apply {
+                    color = Color.RED
+                    textSize = 50f
+                    style = Paint.Style.FILL
+                }
+            )
+        }
 
         // Check if the damage effect is active
         if (damageEffectActive) {
-            drawDamageEffect(canvas)
+            drawDamageEffect(canvas, context)
         }
         results?.let { poseLandmarkerResult ->
 
@@ -390,30 +395,73 @@ class OverlayView(context: Context?, attrs: AttributeSet?) :
             }
         }
     }
-    private fun drawDamageEffect(canvas: Canvas) {
+
+
+
+    private fun triggerDamageEffect() {
+        damageEffectActive = true
+
+        // Cancel any existing timer to avoid overlapping
+        damageTimer?.cancel()
+
+        // Use a ValueAnimator to gradually increase the alpha value
+        val animator = ValueAnimator.ofFloat(0f, 150f)  // Fade from fully transparent to max opacity
+        animator.duration = 1000 // 1 second duration for fade-in effect
+        animator.addUpdateListener { animation ->
+            damageAlpha = animation.animatedValue as Float
+            invalidate() // Redraw the view with updated damage effect
+        }
+        animator.start()
+
+        // Optionally, reset damage effect after it has fully faded in
+        damageTimer = object : CountDownTimer(1000, 1000) {
+            override fun onTick(millisUntilFinished: Long) {
+                // Nothing needed here for this effect
+            }
+
+            override fun onFinish() {
+                damageEffectActive = false
+                invalidate() // Redraw to remove the effect after fading in
+            }
+        }.start()
+    }
+
+    private fun drawDamageEffect(canvas: Canvas, context: Context) {
+        // Load the vignette image as a bitmap
+        val vignetteBitmap = BitmapFactory.decodeResource(context.resources, R.drawable.vignette2)
+
+        // Create a mutable bitmap to modify it
+        val mutableBitmap = vignetteBitmap.copy(Bitmap.Config.ARGB_8888, true)
+
+        // Create a canvas to draw on the mutable bitmap
+        val canvasForBitmap = Canvas(mutableBitmap)
+
+        // Use a Paint object to draw a semi-transparent red overlay with the animated alpha value
         val paint = Paint().apply {
             color = Color.RED
-            alpha = 150 // Semi-transparent red
-            style = Paint.Style.FILL
+            alpha = damageAlpha.toInt()  // Use the animated alpha value
+            xfermode = PorterDuffXfermode(PorterDuff.Mode.MULTIPLY) // Blend mode for red tint
         }
 
-        // Draw a red overlay across the entire canvas
-        canvas.drawRect(0f, 0f, canvas.width.toFloat(), canvas.height.toFloat(), paint)
+        // Draw the red overlay onto the mutable bitmap
+        canvasForBitmap.drawRect(0f, 0f, mutableBitmap.width.toFloat(), mutableBitmap.height.toFloat(), paint)
 
-        // Optionally, add a "crack" or "damage" text
-        val damageText = "Bad Lift!"
-        canvas.drawText(
-            damageText,
-            canvas.width / 2f,
-            canvas.height / 2f,
-            Paint().apply {
-                color = Color.WHITE
-                textSize = 80f
-                textAlign = Paint.Align.CENTER
-                style = Paint.Style.FILL
-            }
+        // Scale the adjusted bitmap to fit the canvas size
+        val scaledBitmap = Bitmap.createScaledBitmap(
+            mutableBitmap,
+            canvas.width,
+            canvas.height,
+            true
         )
+
+        // Draw the modified bitmap on the canvas
+        canvas.drawBitmap(scaledBitmap, 0f, 0f, null)
     }
+
+
+
+
+
 
     fun setResults(
         poseLandmarkerResults: PoseLandmarkerResult,
