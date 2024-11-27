@@ -138,7 +138,7 @@ class CameraFragment : Fragment(), PoseLandmarkerHelper.LandmarkerListener {
 
     private fun showAnalyticsModal() {
         val modalBottomSheet = AnalyticsBottomSheetFragment()
-        modalBottomSheet.setKneeAngles(fragmentCameraBinding.overlay.squatAngles)
+        modalBottomSheet.setDataPoints(fragmentCameraBinding.overlay.squatAngles)
 
         modalBottomSheet.onDismissCallback = {
             val bottomNavigationView = fragmentCameraBinding.bottomNavigation
@@ -256,6 +256,7 @@ class CameraFragment : Fragment(), PoseLandmarkerHelper.LandmarkerListener {
                     circularIndicator.hide()
                     Handler(Looper.getMainLooper()).postDelayed({
                         showAnalyticsModal()
+                        circularIndicator.setProgressCompat(0, false)
                     }, 500)
                 }
             }
@@ -283,14 +284,13 @@ class CameraFragment : Fragment(), PoseLandmarkerHelper.LandmarkerListener {
                     .scaleX(1.5f)
                     .scaleY(1.5f)
                     .alpha(1f)
-                    .setDuration(500) // Half of the interval for the animation to scale up
+                    .setDuration(500)
                     .withEndAction {
                         countdownText.animate()
-                            .alpha(0f) // Fade out
-                            .setDuration(500) // Second half of the interval for fading out
+                            .alpha(0f)
+                            .setDuration(500)
                             .withEndAction {
                                 if (i == countdownValues.size - 1) {
-                                    // On the final step ("GO!" or "FINISHED!"), invoke the callback
                                     onCountdownFinish()
                                 }
                             }

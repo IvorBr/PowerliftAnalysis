@@ -19,17 +19,18 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 
-    <TextView
+    <com.google.mediapipe.examples.poselandmarker.StrokeTextView
         android:id="@+id/countdown_text"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center"
         android:visibility="invisible"
-        android:gravity="center"
         android:textColor="@color/mp_color_primary"
         android:textSize="64sp"
         android:textStyle="bold"
-        android:fontFamily="sans-serif-condensed" />
+        android:fontFamily="sans-serif-condensed"
+        app:strokeColor="#FFFFFF"
+        app:strokeWidth="3dp" />
 
     <Button
         android:id="@+id/start_button"
