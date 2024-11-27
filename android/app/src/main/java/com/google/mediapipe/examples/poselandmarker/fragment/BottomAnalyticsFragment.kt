@@ -7,6 +7,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.TextView
 import com.google.mediapipe.examples.poselandmarker.R
 import com.github.mikephil.charting.charts.LineChart
 import com.github.mikephil.charting.components.LimitLine
@@ -19,6 +20,7 @@ class AnalyticsBottomSheetFragment : BottomSheetDialogFragment() {
     private lateinit var lineChart: LineChart
     private var dataPoints: ArrayList<Entry>? = null
     var onDismissCallback: (() -> Unit)? = null
+    private var liftCount: Int = 0
 
     override fun onDismiss(dialog: DialogInterface) {
         super.onDismiss(dialog)
@@ -48,9 +50,26 @@ class AnalyticsBottomSheetFragment : BottomSheetDialogFragment() {
         return view
     }
 
-    private fun setupLifts(){
+    private fun setupLifts() {
+        val liftCountTextView: TextView = view?.findViewById(R.id.liftCountTextView) ?: return
+        val averageTimeTextView: TextView = view?.findViewById(R.id.averageTimeTextView) ?: return
 
+        // Assuming you have a way to calculate or pass the total time
+        val totalTime: Float = calculateTotalLiftTime() // Replace with your logic
+        val averageTime = if (liftCount > 0) totalTime / liftCount else 0f
+
+        // Update the TextViews with the values
+        liftCountTextView.text = "Lift Count: $liftCount"
+        averageTimeTextView.text = "Average Time: %.2f sec".format(averageTime)
     }
+
+    // Example method to calculate total lift time
+    private fun calculateTotalLiftTime(): Float {
+        // Replace this with the logic to calculate the total lift time
+        // For instance, summing the time deltas from your recorded data
+        return 120f // Placeholder value for demonstration
+    }
+
 
 
     private fun setupChart() {

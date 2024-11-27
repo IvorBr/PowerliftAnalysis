@@ -295,21 +295,6 @@ class OverlayView(context: Context?, attrs: AttributeSet?) :
 
     override fun draw(canvas: Canvas) {
         super.draw(canvas)
-        if (isTimerRunning) {
-            val timerText = "Time Left: $remainingTime s"
-            val canvasWidth = canvas.width.toFloat()
-            val padding = 50f // Padding from the edges
-            canvas.drawText(
-                timerText,
-                canvasWidth - padding - 300f, // Position X: right-aligned with padding
-                padding + 50f, // Position Y: slightly below the top
-                Paint().apply {
-                    color = Color.RED
-                    textSize = 50f
-                    style = Paint.Style.FILL
-                }
-            )
-        }
 
         // Check if the damage effect is active
         if (damageEffectActive) {

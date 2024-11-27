@@ -4,15 +4,12 @@
     android:layout_height="wrap_content"
     android:orientation="vertical"
     android:padding="16dp"
-    style="@style/Widget.Material3.BottomSheet"
-    >
-
-
+    style="@style/Widget.Material3.BottomSheet">
 
     <com.google.android.material.bottomsheet.BottomSheetDragHandleView
         android:id="@+id/drag_handle"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"/>
+        android:layout_height="wrap_content" />
 
     <com.github.mikephil.charting.charts.LineChart
         android:id="@+id/lineChart"
@@ -27,6 +24,24 @@
         android:layout_height="wrap_content"
         android:text="Your analytics will appear here."
         android:paddingBottom="16dp" />
+
+    <!-- Lift Count -->
+    <TextView
+        android:id="@+id/liftCountTextView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Lift Count: 0"
+        android:textSize="18sp"
+        android:layout_marginBottom="8dp" />
+
+    <!-- Average Time -->
+    <TextView
+        android:id="@+id/averageTimeTextView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Average Time: 0.0 sec"
+        android:textSize="18sp"
+        android:layout_marginBottom="16dp" />
 
     <Button
         android:id="@+id/dismiss_button"
