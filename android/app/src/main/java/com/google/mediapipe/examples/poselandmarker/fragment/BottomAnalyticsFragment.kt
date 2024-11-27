@@ -19,7 +19,7 @@ class AnalyticsBottomSheetFragment : BottomSheetDialogFragment() {
     private lateinit var lineChart: LineChart
     private var dataPoints: ArrayList<Entry>? = null
     var onDismissCallback: (() -> Unit)? = null
-
+    private var liftCount = 0;
     override fun onDismiss(dialog: DialogInterface) {
         super.onDismiss(dialog)
         onDismissCallback?.invoke()
