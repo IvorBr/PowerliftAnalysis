@@ -15,17 +15,33 @@
     ~ limitations under the License.
 -->
 <resources>
-    <color name="mp_color_primary">#007F8B</color>
-    <color name="mp_color_primary_variant">#12B5CB</color>
-    <color name="mp_color_primary_dark">#00676D</color>
-    <color name="mp_color_secondary">#FBBC04</color>
-    <color name="mp_color_secondary_variant">#F9AB00</color>
-    <color name="mp_color_error">#B00020</color>
-    <color name="toolbar_background">#E0E0E0</color>
-    <color name="bottom_sheet_background">#EEEEEE</color>
-    <color name="bottom_sheet_text_color">@android:color/black</color>
-    <color name="icActive">#FFFFFFFF</color>
-    <color name="icFocused">#DDFFFFFF</color>
-    <color name="icPressed">#AAFFFFFF</color>
-    <color name="nav_item_color">#FF000000</color>
+    <!-- Primary Colors -->
+    <color name="mp_color_primary">#FF6F00</color> <!-- Vibrant Orange -->
+    <color name="mp_color_primary_variant">#E65100</color> <!-- Darker Orange -->
+    <color name="mp_color_primary_dark">#BF360C</color> <!-- Deep Burnt Orange -->
+
+    <!-- Secondary Colors -->
+    <color name="mp_color_secondary">#FFD600</color> <!-- Vibrant Yellow -->
+    <color name="mp_color_secondary_variant">#FFC107</color> <!-- Golden Yellow -->
+    <color name="track_light">#FFE0B2</color> <!-- Soft Light Orange -->
+
+    <!-- Error -->
+    <color name="mp_color_error">#D50000</color> <!-- Bold Red -->
+
+    <!-- Background Colors -->
+    <color name="toolbar_background">#FAFAFA</color> <!-- Light Gray -->
+    <color name="bottom_sheet_background">#F5F5F5</color> <!-- Slightly Off White -->
+    <color name="bottom_sheet_text_color">#212121</color> <!-- Dark Gray -->
+
+    <!-- Icon States -->
+    <color name="icActive">#FF6F00</color> <!-- Active Icon in Primary Orange -->
+    <color name="icFocused">#FFAB40</color> <!-- Lighter Orange for Focused State -->
+    <color name="icPressed">#FFE082</color> <!-- Pale Yellow for Pressed State -->
+
+    <!-- Navigation Item -->
+    <color name="nav_item_color">#BF360C</color> <!-- Deep Burnt Orange -->
+
+    <!-- Text Colors -->
+    <color name="text_primary_light">#FFFFFF</color> <!-- White Text -->
+    <color name="text_primary_dark">#212121</color> <!-- Black Text -->
 </resources>

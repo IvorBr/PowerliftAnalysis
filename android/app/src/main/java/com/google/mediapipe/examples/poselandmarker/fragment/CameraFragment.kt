@@ -179,6 +179,7 @@ class CameraFragment : Fragment(), PoseLandmarkerHelper.LandmarkerListener {
         startButton.setOnClickListener {
             startCountdown(listOf("3", "2", "1", "GO!")){
                 startTimer()
+                startDepthIndicator()
             }
 
             startButton.animate()
@@ -229,6 +230,23 @@ class CameraFragment : Fragment(), PoseLandmarkerHelper.LandmarkerListener {
                 poseLandmarkerHelperListener = this
             )
         }
+    }
+
+    private fun startDepthIndicator() {
+        val verticalProgress = fragmentCameraBinding.verticalProgress
+        val handler = Handler(Looper.getMainLooper())
+        val updateInterval = 50L
+        verticalProgress.max = 180
+
+        // ALS TIMER NIET MEER RUNT HAAL WEG EN ANDERE DINGEN NOG TOEVOEGEN
+        verticalProgress.show()
+        handler.post(object : Runnable {
+            override fun run() {
+                val currentDepth = fragmentCameraBinding.overlay.roundedKneeAngle
+                verticalProgress.setProgressCompat(currentDepth.toInt(), true)
+                handler.postDelayed(this, updateInterval)
+            }
+        })
     }
 
     private fun startTimer() {
