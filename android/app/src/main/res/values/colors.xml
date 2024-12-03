@@ -44,4 +44,5 @@
     <!-- Text Colors -->
     <color name="text_primary_light">#FFFFFF</color> <!-- White Text -->
     <color name="text_primary_dark">#212121</color> <!-- Black Text -->
+
 </resources>
