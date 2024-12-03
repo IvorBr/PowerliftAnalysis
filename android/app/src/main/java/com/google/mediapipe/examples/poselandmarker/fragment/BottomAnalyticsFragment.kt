@@ -17,6 +17,7 @@ import com.github.mikephil.charting.data.LineDataSet
 import kotlin.math.sin
 
 class AnalyticsBottomSheetFragment : BottomSheetDialogFragment() {
+    private lateinit var rootView: View
     private lateinit var lineChart: LineChart
     private var dataPoints: ArrayList<Entry>? = null
     var onDismissCallback: (() -> Unit)? = null
@@ -38,27 +39,25 @@ class AnalyticsBottomSheetFragment : BottomSheetDialogFragment() {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        val view = inflater.inflate(R.layout.fragment_modal_bottom_sheet, container, false)
+        rootView = inflater.inflate(R.layout.fragment_modal_bottom_sheet, container, false)
 
-        lineChart = view.findViewById(R.id.lineChart)
+        lineChart = rootView.findViewById(R.id.lineChart)
         setupChart()
-
         setupLifts()
 
-
-        return view
+        return rootView
     }
 
     private fun setupLifts() {
-        val liftCountTextView: TextView = view?.findViewById(R.id.liftCountTextView) ?: return
-        val averageTimeTextView: TextView = view?.findViewById(R.id.averageTimeTextView) ?: return
+        val liftCountTextView: TextView = rootView.findViewById(R.id.liftCountTextView)
+        val averageTimeTextView: TextView = rootView.findViewById(R.id.averageTimeTextView)
 
         // Assuming you have a way to calculate or pass the total time
         val totalTime: Float = calculateTotalLiftTime() // Replace with your logic
         val averageTime = if (liftCount > 0) totalTime / liftCount else 0f
 
         // Update the TextViews with the values
-        liftCountTextView.text = "Lift Count: $liftCount"
+        liftCountTextView.text = "Lift Count: $liftCount" // Use the variable here
         averageTimeTextView.text = "Average Time: %.2f sec".format(averageTime)
     }
 
@@ -100,8 +99,8 @@ class AnalyticsBottomSheetFragment : BottomSheetDialogFragment() {
         axisRight.setDrawGridLines(false)
         axisRight.setDrawAxisLine(false)
 
-        val fullRangeThreshold = 90/180f
-        val fullStretchThreshold = 160/180f
+        val fullRangeThreshold = 60/180f
+        val fullStretchThreshold = 150/180f
 
         val deepSquatLimit = LimitLine(fullRangeThreshold, "Full Range")
         deepSquatLimit.lineColor = Color.RED

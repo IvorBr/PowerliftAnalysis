@@ -30,7 +30,6 @@
         android:id="@+id/liftCountTextView"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Lift Count: 0"
         android:textSize="18sp"
         android:layout_marginBottom="8dp" />
 
