@@ -118,7 +118,7 @@ class OverlayView(context: Context?, attrs: AttributeSet?) :
     private var damageEffectActive = false
     private var damageTimer: CountDownTimer? = null
 
-    private var drawTracking: Boolean = true
+    private var isSkeletonEnabled: Boolean = true
 
     var currentLift: LiftType = LiftType.Squat
 
@@ -141,6 +141,11 @@ class OverlayView(context: Context?, attrs: AttributeSet?) :
 
     init {
         initPaints()
+    }
+
+    fun toggleSkeletonSetting(enabled: Boolean) {
+        isSkeletonEnabled = enabled
+        invalidate() // Redraw the view to reflect the change
     }
 
     fun clear() {
@@ -308,7 +313,7 @@ class OverlayView(context: Context?, attrs: AttributeSet?) :
         results?.let { poseLandmarkerResult ->
 
             for(landmark in poseLandmarkerResult.landmarks()) {
-                if (drawTracking) {
+                if (isSkeletonEnabled) {
                     for (normalizedLandmark in landmark) {
                         canvas.drawPoint(
                             normalizedLandmark.x() * imageWidth * scaleFactor,

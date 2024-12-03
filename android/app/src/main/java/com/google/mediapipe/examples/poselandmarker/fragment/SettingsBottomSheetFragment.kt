@@ -7,6 +7,8 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
+import com.google.mediapipe.examples.poselandmarker.OverlayView
+import com.google.mediapipe.examples.poselandmarker.R
 import com.google.mediapipe.examples.poselandmarker.databinding.FragmentSettingsBottomSheetBinding
 
 class SettingsBottomSheetFragment : BottomSheetDialogFragment() {
@@ -22,26 +24,30 @@ class SettingsBottomSheetFragment : BottomSheetDialogFragment() {
         return binding.root
     }
 
-    override fun onDestroyView() {
-        super.onDestroyView()
-        _binding = null
-    }
-
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
         val sharedPreferences = requireContext().getSharedPreferences("AppSettings", Context.MODE_PRIVATE)
-        val isWireframeEnabled = sharedPreferences.getBoolean("wireframe_skeleton", false)
+        val isSkeletonEnabled = sharedPreferences.getBoolean("wireframe_skeleton", false)
 
-        binding.wireframeSwitch.isChecked = isWireframeEnabled
+        binding.wireframeSwitch.isChecked = isSkeletonEnabled
 
+        // Listen for toggle changes
         binding.wireframeSwitch.setOnCheckedChangeListener { _, isChecked ->
+            // Save to SharedPreferences
             sharedPreferences.edit().putBoolean("wireframe_skeleton", isChecked).apply()
+
+            // Notify OverlayView
+            (requireActivity().findViewById<OverlayView>(R.id.overlay))?.toggleSkeletonSetting(isChecked)
         }
     }
 
-
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
+    }
     companion object {
         const val TAG = "SettingsBottomSheet"
     }
 }
+

@@ -73,6 +73,7 @@ class CameraFragment : Fragment(), PoseLandmarkerHelper.LandmarkerListener {
 
     private lateinit var poseLandmarkerHelper: PoseLandmarkerHelper
     private val viewModel: MainViewModel by activityViewModels()
+    private val settingsBottomSheet = SettingsBottomSheetFragment()
     private var preview: Preview? = null
     private var imageAnalyzer: ImageAnalysis? = null
     private var camera: Camera? = null
@@ -182,7 +183,6 @@ class CameraFragment : Fragment(), PoseLandmarkerHelper.LandmarkerListener {
 
         val settingsFab = fragmentCameraBinding.settingsFab
         settingsFab.setOnClickListener {
-            val settingsBottomSheet = SettingsBottomSheetFragment()
             settingsBottomSheet.show(parentFragmentManager, SettingsBottomSheetFragment.TAG)
         }
 
