@@ -30,7 +30,7 @@
         android:textStyle="bold"
         android:fontFamily="sans-serif-condensed"
         app:strokeColor="#FFFFFF"
-        app:strokeWidth="3dp" />
+        app:strokeWidth="4dp" />
 
     <Button
         android:id="@+id/start_button"
@@ -52,18 +52,39 @@
         app:labelVisibilityMode="labeled"
         style="@style/Widget.Material3.BottomNavigationView" />
 
+    <com.google.android.material.progressindicator.LinearProgressIndicator
+        android:id="@+id/vertical_progress"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:layout_gravity="start|center_vertical"
+        android:layout_marginStart="8dp"
+        android:rotation="270"
+        app:indicatorDirectionLinear="startToEnd"
+        app:indicatorColor="@color/mp_color_primary"
+        app:trackColor="@color/track_light"
+        app:trackThickness="12dp"
+        app:showAnimationBehavior="outward"
+        app:hideAnimationBehavior="inward"
+        android:visibility="invisible" />
+
     <com.google.android.material.progressindicator.CircularProgressIndicator
         android:id="@+id/circular_indicator"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        app:indicatorSize="80dp"
-        app:showAnimationBehavior="outward"
-        app:hideAnimationBehavior="inward"
-        app:trackThickness="16dp"
+        android:layout_gravity="bottom|end"
         android:layout_marginBottom="16dp"
         android:layout_marginEnd="16dp"
-        android:layout_gravity="bottom|end"
-        app:indicatorDirectionCircular="clockwise" />
+        android:visibility="invisible"
+
+        app:showAnimationBehavior="outward"
+        app:hideAnimationBehavior="inward"
+        app:indicatorDirectionCircular="clockwise"
+        app:indicatorColor="@color/mp_color_primary"
+        app:trackColor="@color/track_light"
+        app:trackCornerRadius="16dp"
+        app:indicatorSize="80dp"
+        app:trackThickness="12dp"
+/>
 
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

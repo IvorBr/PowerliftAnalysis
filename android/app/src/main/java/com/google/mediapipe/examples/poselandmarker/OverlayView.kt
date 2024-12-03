@@ -127,7 +127,7 @@ class OverlayView(context: Context?, attrs: AttributeSet?) :
     val squatAngles = ArrayList<Entry>()
 
     private var roundedHipAngle: Float = 0f
-    private var roundedKneeAngle: Float = 0f
+    var roundedKneeAngle: Float = 0f
 
 
     private var rightShoulder: Pair<Float, Float> = Pair(0f, 0f)
