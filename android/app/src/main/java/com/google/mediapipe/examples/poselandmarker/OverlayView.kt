@@ -151,7 +151,6 @@ class OverlayView(context: Context?, attrs: AttributeSet?) :
     private var imageWidth: Int = 1
     private var imageHeight: Int = 1
 
-
     private var succesfulLift: Boolean = false
     private var triggered: Boolean = false
 
@@ -163,7 +162,7 @@ class OverlayView(context: Context?, attrs: AttributeSet?) :
     private var damageEffectActive = false
     private var damageTimer: CountDownTimer? = null
 
-    private var drawTracking: Boolean = true
+    var isSkeletonEnabled: Boolean = true
 
     var currentLift: LiftType = LiftType.Squat
 
@@ -218,8 +217,7 @@ class OverlayView(context: Context?, attrs: AttributeSet?) :
     }
 
     var standardTime: Int = 10
-    private var remainingTime: Int = 0
-    var EntryCount = 0
+    var entryCount = 0
 
     private fun drawRedCircle(canvas: Canvas, landmarkerID: Int) {
         results?.let { poseLandmarkerResult ->
@@ -376,8 +374,8 @@ class OverlayView(context: Context?, attrs: AttributeSet?) :
             calculateAnglesSquats()
 
             // Add the averaged knee angle to the squatAngles list
-            squatAngles.add(Entry(EntryCount.toFloat(), roundedKneeAngle / 180f))
-            EntryCount += 1
+            squatAngles.add(Entry(entryCount.toFloat(), roundedKneeAngle / 180f))
+            entryCount += 1
 
             // Display the averaged knee angle
             val hipMidX = (rightHip.first + rightKnee.first) / 2 * imageWidth * scaleFactor
@@ -437,7 +435,7 @@ class OverlayView(context: Context?, attrs: AttributeSet?) :
         results?.let { poseLandmarkerResult ->
 
             for(landmark in poseLandmarkerResult.landmarks()) {
-                if (drawTracking) {
+                if (isSkeletonEnabled) {
                     for (normalizedLandmark in landmark) {
                         canvas.drawPoint(
                             normalizedLandmark.x() * imageWidth * scaleFactor,

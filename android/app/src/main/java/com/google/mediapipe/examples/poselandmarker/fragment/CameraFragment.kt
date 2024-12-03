@@ -42,8 +42,10 @@ import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.navigation.Navigation
+import androidx.navigation.fragment.findNavController
 import com.github.mikephil.charting.data.Entry
 import com.google.android.material.animation.AnimationUtils
+import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.android.material.progressindicator.CircularProgressIndicator
 import com.google.mediapipe.examples.poselandmarker.LiftType
 import com.google.mediapipe.examples.poselandmarker.PoseLandmarkerHelper
@@ -71,6 +73,7 @@ class CameraFragment : Fragment(), PoseLandmarkerHelper.LandmarkerListener {
 
     private lateinit var poseLandmarkerHelper: PoseLandmarkerHelper
     private val viewModel: MainViewModel by activityViewModels()
+    private val settingsBottomSheet = SettingsBottomSheetFragment()
     private var preview: Preview? = null
     private var imageAnalyzer: ImageAnalysis? = null
     private var camera: Camera? = null
@@ -144,6 +147,11 @@ class CameraFragment : Fragment(), PoseLandmarkerHelper.LandmarkerListener {
             fragmentCameraBinding.overlay.squatAngles.clear()
             val bottomNavigationView = fragmentCameraBinding.bottomNavigation
 
+            fragmentCameraBinding.settingsFab.animate()
+                .alpha(1f)
+                .setDuration(300)
+                .start()
+
             fragmentCameraBinding.startButton.animate()
                 .alpha(1f)
                 .setDuration(300)
@@ -171,14 +179,29 @@ class CameraFragment : Fragment(), PoseLandmarkerHelper.LandmarkerListener {
             // Set up the camera and its use cases
             setUpCamera()
         }
+
+        val settingsFab = fragmentCameraBinding.settingsFab
+        settingsFab.setOnClickListener {
+            settingsBottomSheet.show(parentFragmentManager, SettingsBottomSheetFragment.TAG)
+        }
+
+        val verticalProgress = fragmentCameraBinding.verticalProgress
         val startButton = fragmentCameraBinding.startButton
         val bottomNavigationView = fragmentCameraBinding.bottomNavigation
 
+        verticalProgress.post {
+            verticalProgress.x -= verticalProgress.width / 2.2f
+        }
         startButton.setOnClickListener {
             startCountdown(listOf("3", "2", "1", "GO!")){
                 startTimer()
                 startDepthIndicator()
             }
+
+            settingsFab.animate()
+                .alpha(0f)
+                .setDuration(300)
+                .start()
 
             startButton.animate()
                 .alpha(0f)
@@ -269,7 +292,7 @@ class CameraFragment : Fragment(), PoseLandmarkerHelper.LandmarkerListener {
                         startCountdown(listOf("3", "2", "1", "FINISHED!")){}
                     }
                 } else {
-                    fragmentCameraBinding.overlay.EntryCount = 0
+                    fragmentCameraBinding.overlay.entryCount = 0
                     fragmentCameraBinding.overlay.isTimerRunning = false
                     circularIndicator.hide()
                     Handler(Looper.getMainLooper()).postDelayed({

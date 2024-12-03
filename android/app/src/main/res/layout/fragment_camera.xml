@@ -6,18 +6,26 @@
     android:layout_height="match_parent">
 
     <androidx.camera.view.PreviewView
-
-
         android:id="@+id/view_finder"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         app:scaleType="fillStart" />
 
-
     <com.google.mediapipe.examples.poselandmarker.OverlayView
         android:id="@+id/overlay"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
+
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/settings_fab"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|end"
+        app:srcCompat="@drawable/settings"
+        android:layout_marginBottom="90dp"
+        android:layout_marginEnd="16dp"
+        app:backgroundTint="@color/track_light" />
+
 
     <com.google.mediapipe.examples.poselandmarker.StrokeTextView
         android:id="@+id/countdown_text"
@@ -32,16 +40,20 @@
         app:strokeColor="#FFFFFF"
         app:strokeWidth="4dp" />
 
+
     <Button
         android:id="@+id/start_button"
-        style="@style/Widget.Material3.Button"
+        style="@style/Widget.Material3.Button.ElevatedButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center_horizontal|bottom"
         android:layout_marginBottom="90dp"
         android:minWidth="120dip"
         android:minHeight="54dip"
-        android:text="@string/start_button" />
+        android:text="@string/start_button"
+        app:backgroundTint="@color/mp_color_primary"
+        android:textColor="@color/text_primary_light"
+        />
 
     <com.google.android.material.bottomnavigation.BottomNavigationView
         android:id="@+id/bottom_navigation"
@@ -57,12 +69,13 @@
         android:layout_width="wrap_content"
         android:layout_height="match_parent"
         android:layout_gravity="start|center_vertical"
-        android:layout_marginStart="8dp"
         android:rotation="270"
-        app:indicatorDirectionLinear="startToEnd"
+        app:indicatorDirectionLinear="endToStart"
         app:indicatorColor="@color/mp_color_primary"
         app:trackColor="@color/track_light"
-        app:trackThickness="12dp"
+        app:trackThickness="8dp"
+        app:trackCornerRadius="4dp"
+        app:trackStopIndicatorSize="4dp"
         app:showAnimationBehavior="outward"
         app:hideAnimationBehavior="inward"
         android:visibility="invisible" />
@@ -75,7 +88,6 @@
         android:layout_marginBottom="16dp"
         android:layout_marginEnd="16dp"
         android:visibility="invisible"
-
         app:showAnimationBehavior="outward"
         app:hideAnimationBehavior="inward"
         app:indicatorDirectionCircular="clockwise"

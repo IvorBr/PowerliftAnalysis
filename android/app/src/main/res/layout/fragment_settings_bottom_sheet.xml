@@ -1,0 +1,53 @@
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="16dp">
+
+    <TextView
+        android:id="@+id/settings_title"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Settings"
+        android:textSize="20sp"
+        android:textStyle="bold"
+        android:paddingBottom="8dp" />
+
+    <!-- Wireframe Skeleton Switch -->
+    <com.google.android.material.switchmaterial.SwitchMaterial
+        android:id="@+id/wireframe_switch"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Show Wireframe Skeleton"
+        android:checked="false" />
+
+    <!-- Timer Slider -->
+    <TextView
+        android:id="@+id/timer_label"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Set Standard Time (seconds)"
+        android:paddingTop="16dp"
+        android:textSize="16sp" />
+
+    <com.google.android.material.slider.Slider
+        android:id="@+id/timer_slider"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:value="10"
+        android:valueFrom="5"
+        android:valueTo="60"
+        android:stepSize="1"
+        app:labelBehavior="gone" />
+
+    <TextView
+        android:id="@+id/timer_value"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="10 seconds"
+        android:textSize="16sp"
+        android:layout_gravity="end" />
+
+</LinearLayout>
