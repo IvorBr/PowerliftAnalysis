@@ -28,17 +28,28 @@ class SettingsBottomSheetFragment : BottomSheetDialogFragment() {
         super.onViewCreated(view, savedInstanceState)
 
         val sharedPreferences = requireContext().getSharedPreferences("AppSettings", Context.MODE_PRIVATE)
-        val isSkeletonEnabled = sharedPreferences.getBoolean("wireframe_skeleton", false)
+        val skeletonBool = sharedPreferences.getBoolean("wireframe_skeleton", false)
 
-        binding.wireframeSwitch.isChecked = isSkeletonEnabled
+        binding.wireframeSwitch.isChecked = skeletonBool
 
-        // Listen for toggle changes
         binding.wireframeSwitch.setOnCheckedChangeListener { _, isChecked ->
-            // Save to SharedPreferences
             sharedPreferences.edit().putBoolean("wireframe_skeleton", isChecked).apply()
 
-            // Notify OverlayView
-            (requireActivity().findViewById<OverlayView>(R.id.overlay))?.toggleSkeletonSetting(isChecked)
+            (requireActivity().findViewById<OverlayView>(R.id.overlay))?.apply {
+                isSkeletonEnabled = isChecked
+                invalidate()
+            }
+        }
+
+        binding.timerSlider.addOnChangeListener { _, value, _ ->
+            val time = value.toInt()
+            binding.timerValue.text = "$time seconds"
+            sharedPreferences.edit().putInt("standard_time", time).apply()
+
+            (requireActivity().findViewById<OverlayView>(R.id.overlay))?.apply {
+                standardTime = time
+                invalidate()
+            }
         }
     }
 

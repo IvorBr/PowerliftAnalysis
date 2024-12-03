@@ -293,7 +293,7 @@ class CameraFragment : Fragment(), PoseLandmarkerHelper.LandmarkerListener {
                         startCountdown(listOf("3", "2", "1", "FINISHED!")){}
                     }
                 } else {
-                    fragmentCameraBinding.overlay.EntryCount = 0
+                    fragmentCameraBinding.overlay.entryCount = 0
                     fragmentCameraBinding.overlay.isTimerRunning = false
                     circularIndicator.hide()
                     Handler(Looper.getMainLooper()).postDelayed({
