@@ -177,7 +177,6 @@ class CameraFragment : Fragment(), PoseLandmarkerHelper.LandmarkerListener {
         val startButton = fragmentCameraBinding.startButton
         val bottomNavigationView = fragmentCameraBinding.bottomNavigation
 
-        verticalProgress.rotation = 270f
         verticalProgress.post {
             verticalProgress.x -= verticalProgress.width / 2.2f
         }
