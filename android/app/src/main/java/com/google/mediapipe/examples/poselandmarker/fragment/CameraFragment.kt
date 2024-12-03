@@ -42,8 +42,10 @@ import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.navigation.Navigation
+import androidx.navigation.fragment.findNavController
 import com.github.mikephil.charting.data.Entry
 import com.google.android.material.animation.AnimationUtils
+import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.android.material.progressindicator.CircularProgressIndicator
 import com.google.mediapipe.examples.poselandmarker.LiftType
 import com.google.mediapipe.examples.poselandmarker.PoseLandmarkerHelper
@@ -145,6 +147,11 @@ class CameraFragment : Fragment(), PoseLandmarkerHelper.LandmarkerListener {
             fragmentCameraBinding.overlay.squatAngles.clear()
             val bottomNavigationView = fragmentCameraBinding.bottomNavigation
 
+            fragmentCameraBinding.settingsFab.animate()
+                .alpha(1f)
+                .setDuration(300)
+                .start()
+
             fragmentCameraBinding.startButton.animate()
                 .alpha(1f)
                 .setDuration(300)
@@ -173,6 +180,12 @@ class CameraFragment : Fragment(), PoseLandmarkerHelper.LandmarkerListener {
             setUpCamera()
         }
 
+        val settingsFab = fragmentCameraBinding.settingsFab
+        settingsFab.setOnClickListener {
+            val settingsBottomSheet = SettingsBottomSheetFragment()
+            settingsBottomSheet.show(parentFragmentManager, SettingsBottomSheetFragment.TAG)
+        }
+
         val verticalProgress = fragmentCameraBinding.verticalProgress
         val startButton = fragmentCameraBinding.startButton
         val bottomNavigationView = fragmentCameraBinding.bottomNavigation
@@ -185,6 +198,11 @@ class CameraFragment : Fragment(), PoseLandmarkerHelper.LandmarkerListener {
                 startTimer()
                 startDepthIndicator()
             }
+
+            settingsFab.animate()
+                .alpha(0f)
+                .setDuration(300)
+                .start()
 
             startButton.animate()
                 .alpha(0f)

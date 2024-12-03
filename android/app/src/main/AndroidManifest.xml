@@ -46,6 +46,7 @@
                 android:name="android.notch_support"
                 android:value="true" />
         </activity>
+
     </application>
 
 </manifest>

@@ -34,6 +34,13 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun onBackPressed() {
-        finish()
+        val navController = (supportFragmentManager.findFragmentById(R.id.fragment_container) as NavHostFragment).navController
+
+        if (navController.currentDestination?.id != R.id.camera_fragment) {
+            navController.navigate(R.id.camera_fragment)
+        } else {
+            finish()
+        }
     }
+
 }
