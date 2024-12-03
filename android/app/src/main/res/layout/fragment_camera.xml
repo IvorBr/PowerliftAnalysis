@@ -6,13 +6,10 @@
     android:layout_height="match_parent">
 
     <androidx.camera.view.PreviewView
-
-
         android:id="@+id/view_finder"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         app:scaleType="fillStart" />
-
 
     <com.google.mediapipe.examples.poselandmarker.OverlayView
         android:id="@+id/overlay"
@@ -57,12 +54,11 @@
         android:layout_width="wrap_content"
         android:layout_height="match_parent"
         android:layout_gravity="start|center_vertical"
-        android:layout_marginStart="8dp"
-        android:rotation="270"
-        app:indicatorDirectionLinear="startToEnd"
+        app:indicatorDirectionLinear="endToStart"
         app:indicatorColor="@color/mp_color_primary"
         app:trackColor="@color/track_light"
-        app:trackThickness="12dp"
+        app:trackThickness="8dp"
+        app:trackCornerRadius="4dp"
         app:showAnimationBehavior="outward"
         app:hideAnimationBehavior="inward"
         android:visibility="invisible" />
@@ -75,7 +71,6 @@
         android:layout_marginBottom="16dp"
         android:layout_marginEnd="16dp"
         android:visibility="invisible"
-
         app:showAnimationBehavior="outward"
         app:hideAnimationBehavior="inward"
         app:indicatorDirectionCircular="clockwise"

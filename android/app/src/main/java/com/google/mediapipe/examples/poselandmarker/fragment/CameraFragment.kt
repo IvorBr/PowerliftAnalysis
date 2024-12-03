@@ -173,9 +173,14 @@ class CameraFragment : Fragment(), PoseLandmarkerHelper.LandmarkerListener {
             setUpCamera()
         }
 
+        val verticalProgress = fragmentCameraBinding.verticalProgress
         val startButton = fragmentCameraBinding.startButton
         val bottomNavigationView = fragmentCameraBinding.bottomNavigation
 
+        verticalProgress.rotation = 270f
+        verticalProgress.post {
+            verticalProgress.x -= verticalProgress.width / 2.2f
+        }
         startButton.setOnClickListener {
             startCountdown(listOf("3", "2", "1", "GO!")){
                 startTimer()
