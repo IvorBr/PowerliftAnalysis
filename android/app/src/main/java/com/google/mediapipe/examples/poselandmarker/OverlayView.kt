@@ -224,29 +224,33 @@ class OverlayView(context: Context?, attrs: AttributeSet?) :
         canvas.drawText(text, x, y, paint)
     }
 
-    private fun calculateAngles() {
-        // Calculate the knee and hip angles
-        val kneeAngle = calculateAngle(rightHip, rightKnee, rightAnkle)
-        val hipAngle = calculateAngle(rightShoulder, rightHip, rightKnee)
-
-        roundedKneeAngle = kotlin.math.round(kneeAngle * 100) / 100 // Round to 2 decimal places
-        roundedHipAngle = kotlin.math.round(hipAngle * 100) / 100
-
-    }
-
 
 
     private fun deadlifts(canvas: Canvas){
     }
 
-    private fun squats(canvas: Canvas){
-        if (isTimerRunning){
-            // Calculate angles
+    private fun calculateAngles() {
+        // Calculate the knee angles for both left and right knees
+        val rightKneeAngle = calculateAngle(rightHip, rightKnee, rightAnkle)
+        val leftKneeAngle = calculateAngle(leftHip, leftKnee, leftAnkle)
+
+        // Average the two knee angles
+        val averageKneeAngle = (rightKneeAngle + leftKneeAngle) / 2
+
+        // Round to 2 decimal places for consistency
+        roundedKneeAngle = (round(averageKneeAngle * 100) / 100).toFloat()  // Round to 2 decimal places
+    }
+
+    private fun squats(canvas: Canvas) {
+        if (isTimerRunning) {
+            // Calculate angles for both knees and average them
             calculateAngles()
 
+            // Add the averaged knee angle to the squatAngles list
             squatAngles.add(Entry(EntryCount.toFloat(), roundedKneeAngle / 180f))
             EntryCount += 1
-            // Display angles
+
+            // Display the averaged knee angle
             val hipMidX = (rightHip.first + rightKnee.first) / 2 * imageWidth * scaleFactor
             val hipMidY = (rightHip.second + rightKnee.second) / 2 * imageHeight * scaleFactor
             val angleText = "Knee Angle: $roundedKneeAngle°"
@@ -254,21 +258,21 @@ class OverlayView(context: Context?, attrs: AttributeSet?) :
 
             // Determine the status of the squat
             var statusText: String
-            if (roundedKneeAngle > 160 && !succesfulLift && !triggered) {
+            if (roundedKneeAngle > 150 && !succesfulLift && !triggered) {
                 triggerDamageEffect()
                 triggered = true
             }
 
-            if (triggered && roundedKneeAngle < 160) {
+            if (triggered && roundedKneeAngle < 150) {
                 triggered = false
             }
 
-            if (setLift && roundedKneeAngle < 160) {
+            if (setLift && roundedKneeAngle < 150) {
                 setLift = false
                 succesfulLift = false
             }
 
-            if (roundedKneeAngle > 160 && finishedLift) {
+            if (roundedKneeAngle > 150 && finishedLift) {
                 finishedLift = false
                 setLift = true
                 liftCount += 1
@@ -288,6 +292,7 @@ class OverlayView(context: Context?, attrs: AttributeSet?) :
             drawText(canvas, statusText, padding, canvasHeight - 280f, Color.GREEN, 50f)
         }
     }
+
 
     private fun stopTimer() {
         timer?.cancel()
