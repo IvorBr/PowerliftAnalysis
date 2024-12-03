@@ -38,7 +38,6 @@
         android:id="@+id/averageTimeTextView"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Average Time: 0.0 sec"
         android:textSize="18sp"
         android:layout_marginBottom="16dp" />
 

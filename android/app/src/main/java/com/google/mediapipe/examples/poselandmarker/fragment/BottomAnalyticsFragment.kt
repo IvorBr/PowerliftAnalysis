@@ -21,7 +21,7 @@ class AnalyticsBottomSheetFragment : BottomSheetDialogFragment() {
     private lateinit var lineChart: LineChart
     private var dataPoints: ArrayList<Entry>? = null
     var onDismissCallback: (() -> Unit)? = null
-    private var liftCount = 0;
+    private var liftCount = 0f;
     override fun onDismiss(dialog: DialogInterface) {
         super.onDismiss(dialog)
         onDismissCallback?.invoke()
@@ -29,10 +29,6 @@ class AnalyticsBottomSheetFragment : BottomSheetDialogFragment() {
 
     fun setDataPoints(data: ArrayList<Entry>) {
         dataPoints = data
-    }
-
-    fun setLiftCount(data: Int){
-        liftCount = data
     }
 
     override fun onCreateView(
@@ -45,20 +41,83 @@ class AnalyticsBottomSheetFragment : BottomSheetDialogFragment() {
         setupChart()
         setupLifts()
 
+
         return rootView
     }
 
+    private fun measureSquats() {
+        // Thresholds for defining a "successful" lift (example values, adjust as needed)
+
+        val nearestRoundedNumber = 5  // Rounding interval for angle
+
+        var previousAngle = 0
+
+        var reachedDepth = false
+        var goingDown = true
+
+        if (dataPoints.isNullOrEmpty()) return
+
+        var currentAngle = 0
+        var successfulLifts = 0
+        var wrongLift = 0
+        var wrongfulLift = false
+
+        for (i in 1 until dataPoints!!.size) {
+            val entry = dataPoints!![i]
+            val currentEstimatedAngle = entry.y*180
+
+            // Round currentEstimatedAngle to the nearest multiple of nearestRoundedNumber
+            currentAngle = nearestRoundedNumber *
+                    Math.round(currentEstimatedAngle / nearestRoundedNumber)
+
+
+            //successful squat Logic///////////////////////////
+            if (previousAngle > currentAngle && goingDown && !reachedDepth && currentAngle <= 60) {
+                //going up
+                reachedDepth = true
+                goingDown = false
+            }
+            if(reachedDepth && currentAngle >= 150 && !goingDown){
+                successfulLifts += 1
+                reachedDepth = false
+                goingDown = true
+            }
+            //////////////////////////////////////////////////
+
+            //unsuccessful squat logic/////////////////////////
+            if (previousAngle < currentAngle && goingDown && !reachedDepth && currentAngle < 150){
+                // Wrong lift
+                wrongLift += 1
+                goingDown = false
+                wrongfulLift = true
+            }
+
+            if (wrongfulLift && currentAngle >= 150){
+                goingDown = true
+                wrongfulLift = false
+            }
+
+
+            ///////////////////////////////////////////////////
+            if (previousAngle != currentAngle){
+                previousAngle = currentAngle
+            }
+
+        }
+
+        // Update the successful lifts count
+        liftCount = successfulLifts.toFloat() / (successfulLifts.toFloat()+wrongLift.toFloat())
+    }
+
+
+
     private fun setupLifts() {
         val liftCountTextView: TextView = rootView.findViewById(R.id.liftCountTextView)
-        val averageTimeTextView: TextView = rootView.findViewById(R.id.averageTimeTextView)
 
-        // Assuming you have a way to calculate or pass the total time
-        val totalTime: Float = calculateTotalLiftTime() // Replace with your logic
-        val averageTime = if (liftCount > 0) totalTime / liftCount else 0f
-
+        measureSquats()
         // Update the TextViews with the values
+
         liftCountTextView.text = "Lift Count: $liftCount" // Use the variable here
-        averageTimeTextView.text = "Average Time: %.2f sec".format(averageTime)
     }
 
     // Example method to calculate total lift time

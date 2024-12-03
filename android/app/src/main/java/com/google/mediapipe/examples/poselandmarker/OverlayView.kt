@@ -78,6 +78,51 @@ enum class Landmark(val index: Int) {
     RIGHT_ANKLE(28)
 }
 
+private fun determineDirection(a: Pair<Float, Float>, b: Pair<Float, Float>, c: Pair<Float, Float>): Boolean{
+
+    val angleAB = atan2(a.second - b.second, a.first - b.first)
+    val angleCB = atan2(c.second - b.second, c.first - b.first)
+
+    // Calculate the angle difference in radians
+    var angleDifference = angleCB - angleAB
+
+    // Convert to degrees
+    var angle = Math.toDegrees(angleDifference.toDouble()).toFloat()
+
+    // Normalize the angle to be within [0, 360)
+    if (angle < 0) angle += 360.0f
+
+    if (angle > 180)
+        return false
+    else
+        return true
+}
+
+private fun calculateAngleAndLockout(a: Pair<Float, Float>, b: Pair<Float, Float>, c: Pair<Float, Float>, increase: Boolean = true): Pair<Float, Boolean> {
+    // Convert points to angles in radians
+    val angleAB = atan2(a.second - b.second, a.first - b.first)
+    val angleCB = atan2(c.second - b.second, c.first - b.first)
+
+    // Calculate the angle difference in radians
+    var angleDifference = angleCB - angleAB
+
+    // Convert to degrees
+    var angle = Math.toDegrees(angleDifference.toDouble()).toFloat()
+
+    // Normalize the angle to be within [0, 360)
+    if (angle < 0) angle += 360.0f
+
+    // Determine if the angle exceeds 180 degrees based on the direction of change
+    val exceeds180 = if (increase) {
+        angle > 180.0f
+    } else {
+        angle < 180.0f
+    }
+
+    // Return the calculated angle and whether it exceeded 180 degrees
+    return Pair(angle, exceeds180)
+}
+
 
 fun calculateAngle(a: Pair<Float, Float>, b: Pair<Float, Float>, c: Pair<Float, Float>): Float {
     // Convert points to angles
@@ -128,8 +173,16 @@ class OverlayView(context: Context?, attrs: AttributeSet?) :
 
     private var roundedHipAngle: Float = 0f
     var roundedKneeAngle: Float = 0f
+    var roundedButtcheekAngle: Float = 0f
+    var roundedElbowAngle: Float = 0f
 
+    private var determinedDirection: Boolean = false
+    private var direction: Boolean = false
 
+    private var rightElbow: Pair<Float, Float> = Pair(0f, 0f)
+    private var leftElbow: Pair<Float, Float> = Pair(0f, 0f)
+    private var rightHand: Pair<Float, Float> = Pair(0f, 0f)
+    private var leftHand: Pair<Float, Float> = Pair(0f, 0f)
     private var rightShoulder: Pair<Float, Float> = Pair(0f, 0f)
     private var leftShoulder: Pair<Float, Float> = Pair(0f, 0f)
     private var rightHip: Pair<Float, Float> = Pair(0f, 0f)
@@ -226,10 +279,32 @@ class OverlayView(context: Context?, attrs: AttributeSet?) :
 
 
 
-    private fun deadlifts(canvas: Canvas){
-    }
+    private fun calculateAnglesDeadlifts(){
+        // Calculate the knee angles for both left and right knees
+        if(!determinedDirection){
+            direction = determineDirection(rightShoulder, rightHip, rightKnee)
+            determinedDirection = true
+        }
+        //val rightKneeAngle = calculateAngle(rightHip, rightKnee, rightAnkle)
+        //val leftKneeAngle = calculateAngle(leftHip, leftKnee, leftAnkle)
 
-    private fun calculateAngles() {
+        val leftButtcheekData = calculateAngleAndLockout(leftShoulder, leftHip, leftKnee, direction)
+        val rightButtcheekData = calculateAngleAndLockout(rightShoulder, rightHip, rightKnee, direction)
+
+        // Average the two knee angles
+        val averageButtcheekAngle = (leftButtcheekData.first + rightButtcheekData.first)/2
+
+        if (!finishedLift)
+            succesfulLift = leftButtcheekData.second && rightButtcheekData.second
+
+        // Round to 2 decimal places for consistency
+        //roundedKneeAngle = (round(averageKneeAngle * 100) / 100).toFloat()  // Round to 2 decimal places
+        roundedButtcheekAngle = (round(averageButtcheekAngle*100)/100)
+
+
+
+    }
+    private fun calculateAnglesSquats() {
         // Calculate the knee angles for both left and right knees
         val rightKneeAngle = calculateAngle(rightHip, rightKnee, rightAnkle)
         val leftKneeAngle = calculateAngle(leftHip, leftKnee, leftAnkle)
@@ -241,10 +316,64 @@ class OverlayView(context: Context?, attrs: AttributeSet?) :
         roundedKneeAngle = (round(averageKneeAngle * 100) / 100).toFloat()  // Round to 2 decimal places
     }
 
+    private fun calculateAnglesBenchpress(){
+        val rightElbowAngle = calculateAngle(rightShoulder, rightElbow, rightHand)
+        val leftElbowAngle = calculateAngle(leftShoulder, leftElbow, leftHand)
+
+        roundedElbowAngle = (rightElbowAngle + leftElbowAngle)/2
+    }
+
+    private fun benchpress(canvas: Canvas){
+        if (isTimerRunning){
+            calculateAnglesBenchpress()
+
+            if (succesfulLift && roundedElbowAngle >= 170){
+                liftCount += 1
+                finishedLift = true
+            }
+
+
+
+            if (roundedElbowAngle <= 90){
+                succesfulLift = true
+            }
+        }
+    }
+
+    private fun deadlifts(canvas: Canvas){
+        if (isTimerRunning){
+            //
+            calculateAnglesDeadlifts()
+
+            if (succesfulLift){
+                liftCount += 1
+                finishedLift = true
+                succesfulLift = false
+            }
+
+            if (finishedLift){
+                if (direction && roundedButtcheekAngle < 180)
+                    finishedLift = false
+                else if (!direction && roundedButtcheekAngle > 180){
+                    finishedLift = false
+                }
+            }
+            var statusText: String
+            statusText = if (!finishedLift) "Go up" else "Go down"
+
+            // Display lift count and status
+            val canvasHeight = canvas.height.toFloat()
+            val padding = 50f
+            //drawText(canvas, "Butt cheek angle: $roundedButtcheekAngle", padding,canvasHeight - 160f, Color.WHITE, 50f)
+            drawText(canvas, "Deadlift  Count: $liftCount", padding, canvasHeight - 220f, Color.YELLOW, 50f)
+            drawText(canvas, statusText, padding, canvasHeight - 280f, Color.GREEN, 50f)
+        }
+    }
+
     private fun squats(canvas: Canvas) {
         if (isTimerRunning) {
             // Calculate angles for both knees and average them
-            calculateAngles()
+            calculateAnglesSquats()
 
             // Add the averaged knee angle to the squatAngles list
             squatAngles.add(Entry(EntryCount.toFloat(), roundedKneeAngle / 180f))
@@ -371,12 +500,32 @@ class OverlayView(context: Context?, attrs: AttributeSet?) :
                     poseLandmarkerResult.landmarks().get(0).get(Landmark.LEFT_ANKLE.index).y()
                 )
 
+                rightHand = Pair(
+                    poseLandmarkerResult.landmarks().get(0).get(Landmark.RIGHT_WRIST.index).x(),
+                    poseLandmarkerResult.landmarks().get(0).get(Landmark.RIGHT_WRIST.index).y()
+                )
+
+                leftHand = Pair(
+                    poseLandmarkerResult.landmarks().get(0).get(Landmark.LEFT_WRIST.index).x(),
+                    poseLandmarkerResult.landmarks().get(0).get(Landmark.LEFT_WRIST.index).y()
+                )
+
+                rightElbow = Pair(
+                    poseLandmarkerResult.landmarks().get(0).get(Landmark.RIGHT_ELBOW.index).x(),
+                    poseLandmarkerResult.landmarks().get(0).get(Landmark.RIGHT_ELBOW.index).y()
+                )
+
+                leftElbow = Pair(
+                    poseLandmarkerResult.landmarks().get(0).get(Landmark.LEFT_ELBOW.index).x(),
+                    poseLandmarkerResult.landmarks().get(0).get(Landmark.LEFT_ELBOW.index).y()
+                )
+
                 if (currentLift == LiftType.Squat) {    //squat
                     squats(canvas)
                 }
 
                 else if (currentLift == LiftType.Benchpress) { //bench
-
+                    benchpress(canvas)
                 }
                 else if (currentLift == LiftType.Deadlift) { //deadlift
                     deadlifts(canvas)
