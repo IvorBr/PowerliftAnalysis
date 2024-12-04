@@ -154,7 +154,6 @@ fun calculateAngle(a: Pair<Float, Float>, b: Pair<Float, Float>, c: Pair<Float, 
 
 class OverlayView(context: Context?, attrs: AttributeSet?) :
     View(context, attrs) {
-    private var damageAlpha = 0f  // This will control the transparency of the damage effect
     private var results: PoseLandmarkerResult? = null
     private var pointPaint = Paint()
     private var linePaint = Paint()
@@ -172,19 +171,18 @@ class OverlayView(context: Context?, attrs: AttributeSet?) :
 
     private var timer: CountDownTimer? = null
     var isTimerRunning = false
+
     val squatAngles = ArrayList<Entry>()
 
 
-    var scoreAdded = false
-    var totalScore = 0
-    var score = 0
-    var deepestAngle = 180.0f
+    private var scoreAdded = false
+    private var totalScore = 0
+    private var deepestAngle = 180.0f
     val scoreData = ArrayList<ArrayList<Multiplier>>()
 
-    private var roundedHipAngle: Float = 0f
     var roundedKneeAngle: Float = 0f
-    var roundedButtcheekAngle: Float = 0f
-    var roundedElbowAngle: Float = 0f
+    private var roundedButtcheekAngle: Float = 0f
+    private var roundedElbowAngle: Float = 0f
 
     private var determinedDirection: Boolean = false
     private var direction: Boolean = false
@@ -370,13 +368,18 @@ class OverlayView(context: Context?, attrs: AttributeSet?) :
             scoreAdded = true
         }
 
+        if (direction) {
+            if (roundedButtcheekAngle < 90) {
+                scoreAdded = false
+                finishedLift = false
+            }
+        } else {
+            if (roundedButtcheekAngle > 270) { // 90 + 180 simplified
+                scoreAdded = false
+                finishedLift = false
+            }
+        }
 
-        if (direction && roundedButtcheekAngle < 90) {
-            scoreAdded = false
-        }
-        else if (!direction && roundedButtcheekAngle > 90+180){
-            scoreAdded = false
-        }
     }
 
 
@@ -431,12 +434,6 @@ class OverlayView(context: Context?, attrs: AttributeSet?) :
         if (roundedKneeAngle < deepestAngle){
             deepestAngle = roundedKneeAngle
         }
-
-        // Display lift count and status
-        val canvasHeight = canvas.height.toFloat()
-        val padding = 50f
-        drawText(canvas, "$totalScore", padding, canvasHeight - 140f, Color.WHITE, 50f)
-
     }
 
 
