@@ -38,4 +38,7 @@
     <style name="AppThemeProgressStyle">
         <item name="colorAccent">@color/mp_color_primary_variant</item>
     </style>
+
+    <style name="MyCustomCardStyle" parent="Widget.Material3.CardView.Elevated">
+    </style>
 </resources>

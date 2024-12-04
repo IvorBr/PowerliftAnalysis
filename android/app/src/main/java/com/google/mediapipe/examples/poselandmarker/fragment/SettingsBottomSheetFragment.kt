@@ -43,7 +43,7 @@ class SettingsBottomSheetFragment : BottomSheetDialogFragment() {
 
         binding.timerSlider.addOnChangeListener { _, value, _ ->
             val time = value.toInt()
-            binding.timerValue.text = "$time seconds"
+            binding.timerLabel.text = "Set Standard Time ($time seconds)"
             sharedPreferences.edit().putInt("standard_time", time).apply()
 
             (requireActivity().findViewById<OverlayView>(R.id.overlay))?.apply {

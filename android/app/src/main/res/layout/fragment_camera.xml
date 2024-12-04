@@ -61,8 +61,7 @@
         android:layout_height="65dip"
         android:layout_gravity="bottom"
         app:menu="@menu/lift_menu_nav"
-        app:labelVisibilityMode="labeled"
-        style="@style/Widget.Material3.BottomNavigationView" />
+        app:labelVisibilityMode="labeled" />
 
     <com.google.android.material.progressindicator.LinearProgressIndicator
         android:id="@+id/vertical_progress"
