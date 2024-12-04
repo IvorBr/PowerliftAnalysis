@@ -27,7 +27,6 @@
         android:layout_marginEnd="16dp"
         style="@style/Widget.Material3.ExtendedFloatingActionButton.Icon.Surface" />
 
-
     <com.google.mediapipe.examples.poselandmarker.StrokeTextView
         android:id="@+id/countdown_text"
         android:layout_width="wrap_content"
@@ -42,6 +41,7 @@
         app:strokeWidth="4dp" />
 
     <LinearLayout
+        android:id="@+id/weight_layout"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center_horizontal|bottom"

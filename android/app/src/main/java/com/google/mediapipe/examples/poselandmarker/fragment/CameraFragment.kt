@@ -158,6 +158,21 @@ class CameraFragment : Fragment(), PoseLandmarkerHelper.LandmarkerListener {
         weightPicker.setFormatter { value -> (value * 5).toString() }
     }
 
+    fun fadeViews(vararg views: View, duration: Long = 300, fadeIn: Boolean = false) {
+        views.forEach { view ->
+            view.animate()
+                .alpha(if (fadeIn) 1f else 0f)
+                .setDuration(duration)
+                .withStartAction {
+                    if (fadeIn) view.visibility = View.VISIBLE // Ensure visibility before fading in
+                }
+                .withEndAction {
+                    if (!fadeIn) view.visibility = View.GONE // Hide after fading out
+                }
+                .start()
+        }
+    }
+
     private fun showAnalyticsModal() {
         val modalBottomSheet = AnalyticsBottomSheetFragment()
         modalBottomSheet.setDataPoints(fragmentCameraBinding.overlay.squatAngles)
@@ -168,15 +183,9 @@ class CameraFragment : Fragment(), PoseLandmarkerHelper.LandmarkerListener {
             fragmentCameraBinding.overlay.squatAngles.clear()
             val bottomNavigationView = fragmentCameraBinding.bottomNavigation
 
-            fragmentCameraBinding.settingsFab.animate()
-                .alpha(1f)
-                .setDuration(300)
-                .start()
-
-            fragmentCameraBinding.startButton.animate()
-                .alpha(1f)
-                .setDuration(300)
-                .start()
+            fadeViews(fragmentCameraBinding.settingsFab,
+                fragmentCameraBinding.startButton,
+                duration = 300, fadeIn = true)
 
             bottomNavigationView.visibility = View.VISIBLE
             fragmentCameraBinding.bottomNavigation.animate()
@@ -218,15 +227,10 @@ class CameraFragment : Fragment(), PoseLandmarkerHelper.LandmarkerListener {
                 startDepthIndicator()
             }
 
-            settingsFab.animate()
-                .alpha(0f)
-                .setDuration(300)
-                .start()
-
-            startButton.animate()
-                .alpha(0f)
-                .setDuration(300)
-                .start()
+            fadeViews(fragmentCameraBinding.settingsFab,
+                fragmentCameraBinding.startButton,
+                fragmentCameraBinding.weightLayout,
+                duration = 300, fadeIn = false)
 
             bottomNavigationView.animate()
                 .translationY(bottomNavigationView.height.toFloat())
