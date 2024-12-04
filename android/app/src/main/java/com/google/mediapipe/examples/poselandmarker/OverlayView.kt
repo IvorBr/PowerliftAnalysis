@@ -77,6 +77,13 @@ enum class Landmark(val index: Int) {
     LEFT_ANKLE(27),
     RIGHT_ANKLE(28)
 }
+enum class Multiplier(val score: Double) {
+    SHALLOW(0.5),
+    SOLID(1.0),
+    DEEP(1.2),
+    EXTRA_DEEP(1.5),
+    ASS_TO_GRASS(2.0);
+}
 
 private fun determineDirection(a: Pair<Float, Float>, b: Pair<Float, Float>, c: Pair<Float, Float>): Boolean{
 
@@ -169,6 +176,13 @@ class OverlayView(context: Context?, attrs: AttributeSet?) :
     private var timer: CountDownTimer? = null
     var isTimerRunning = false
     val squatAngles = ArrayList<Entry>()
+
+
+    var scoreAdded = false
+    var totalScore = 0
+    var score = 0
+    var deepestAngle = 180.0f
+    val points = ArrayList<Multiplier>()
 
     private var roundedHipAngle: Float = 0f
     var roundedKneeAngle: Float = 0f
@@ -330,8 +344,6 @@ class OverlayView(context: Context?, attrs: AttributeSet?) :
                 finishedLift = true
             }
 
-
-
             if (roundedElbowAngle <= 90){
                 succesfulLift = true
             }
@@ -356,6 +368,7 @@ class OverlayView(context: Context?, attrs: AttributeSet?) :
                     finishedLift = false
                 }
             }
+
             var statusText: String
             statusText = if (!finishedLift) "Go up" else "Go down"
 
@@ -365,7 +378,24 @@ class OverlayView(context: Context?, attrs: AttributeSet?) :
             //drawText(canvas, "Butt cheek angle: $roundedButtcheekAngle", padding,canvasHeight - 160f, Color.WHITE, 50f)
             drawText(canvas, "Deadlift  Count: $liftCount", padding, canvasHeight - 220f, Color.YELLOW, 50f)
             drawText(canvas, statusText, padding, canvasHeight - 280f, Color.GREEN, 50f)
+
+
+
         }
+    }
+
+
+    private fun determineMultiplier(): Multiplier {
+        val multiplier: Multiplier = when {
+            deepestAngle < 30 -> Multiplier.ASS_TO_GRASS
+            deepestAngle < 45 -> Multiplier.EXTRA_DEEP
+            deepestAngle < 60 -> Multiplier.DEEP
+            deepestAngle < 70 -> Multiplier.SOLID
+            else -> Multiplier.SHALLOW
+        }
+
+        // displayFeedback(deepestAngle) // Uncomment if needed
+        return multiplier
     }
 
     private fun squats(canvas: Canvas) {
@@ -377,46 +407,28 @@ class OverlayView(context: Context?, attrs: AttributeSet?) :
             squatAngles.add(Entry(entryCount.toFloat(), roundedKneeAngle / 180f))
             entryCount += 1
 
-            // Display the averaged knee angle
-            val hipMidX = (rightHip.first + rightKnee.first) / 2 * imageWidth * scaleFactor
-            val hipMidY = (rightHip.second + rightKnee.second) / 2 * imageHeight * scaleFactor
-            val angleText = "Knee Angle: $roundedKneeAngle°"
-            drawText(canvas, angleText, hipMidX, hipMidY, Color.WHITE, 50f)
-
             // Determine the status of the squat
-            var statusText: String
-            if (roundedKneeAngle > 150 && !succesfulLift && !triggered) {
-                triggerDamageEffect()
-                triggered = true
+
+            if (roundedKneeAngle > 150 && !scoreAdded) {
+                scoreAdded = true
+                var multiplier = determineMultiplier()
+                score = (100*multiplier.score).toInt()
+                points.add(multiplier)
+                totalScore += score
+                deepestAngle = 180f
             }
 
-            if (triggered && roundedKneeAngle < 150) {
-                triggered = false
+            if (roundedKneeAngle < 120){
+                scoreAdded = false
             }
-
-            if (setLift && roundedKneeAngle < 150) {
-                setLift = false
-                succesfulLift = false
+            if (roundedKneeAngle < deepestAngle){
+                deepestAngle = roundedKneeAngle
             }
-
-            if (roundedKneeAngle > 150 && finishedLift) {
-                finishedLift = false
-                setLift = true
-                liftCount += 1
-            }
-
-            if (roundedKneeAngle < 60) {
-                finishedLift = true
-                succesfulLift = true
-            }
-
-            statusText = if (!finishedLift && roundedKneeAngle > 90) "Go down" else "Go up"
 
             // Display lift count and status
             val canvasHeight = canvas.height.toFloat()
             val padding = 50f
-            drawText(canvas, "Squat Count: $liftCount", padding, canvasHeight - 220f, Color.YELLOW, 50f)
-            drawText(canvas, statusText, padding, canvasHeight - 280f, Color.GREEN, 50f)
+            drawText(canvas, "$totalScore", padding, canvasHeight - 140f, Color.WHITE, 50f)
         }
     }
 
