@@ -174,6 +174,7 @@ class OverlayView(context: Context?, attrs: AttributeSet?) :
 
     val squatAngles = ArrayList<Entry>()
 
+    var weight = 10
 
     private var scoreAdded = false
     private var totalScore = 0
@@ -213,6 +214,15 @@ class OverlayView(context: Context?, attrs: AttributeSet?) :
         stopTimer()
     }
 
+    fun calculateScore(): Int{
+        var totalScore = 0
+        for (multipliers in scoreData) {
+            for (multiplier in multipliers){
+                totalScore += (weight*multiplier.score).toInt()
+            }
+        }
+        return totalScore
+    }
 
     private fun initPaints() {
         linePaint.color =

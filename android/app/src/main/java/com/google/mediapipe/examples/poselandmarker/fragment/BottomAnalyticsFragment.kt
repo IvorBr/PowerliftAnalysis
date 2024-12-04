@@ -18,6 +18,7 @@ import com.github.mikephil.charting.data.LineData
 import com.github.mikephil.charting.data.LineDataSet
 import com.google.android.material.card.MaterialCardView
 import com.google.mediapipe.examples.poselandmarker.Multiplier
+import com.google.mediapipe.examples.poselandmarker.LiftType
 import kotlin.math.sin
 
 class AnalyticsBottomSheetFragment : BottomSheetDialogFragment() {
@@ -25,6 +26,7 @@ class AnalyticsBottomSheetFragment : BottomSheetDialogFragment() {
     private lateinit var lineChart: LineChart
     private var dataPoints: ArrayList<Entry>? = null
     private var scoreData: ArrayList<ArrayList<Multiplier>>? = null
+    private var liftType: LiftType = LiftType.Squat
 
     var onDismissCallback: (() -> Unit)? = null
     private var liftCount = 0f;
@@ -39,6 +41,10 @@ class AnalyticsBottomSheetFragment : BottomSheetDialogFragment() {
 
     fun setScoreData(data: ArrayList<ArrayList<Multiplier>>) {
         scoreData = data
+    }
+
+    fun setLiftType(data: LiftType){
+        liftType = data
     }
 
     override fun onCreateView(
@@ -59,6 +65,35 @@ class AnalyticsBottomSheetFragment : BottomSheetDialogFragment() {
         setupLifts()
 
         return rootView
+    }
+
+    private fun measureLifts(){
+        if (dataPoints.isNullOrEmpty()) return
+        val nearestRoundedNumber = 3
+        var previousAngle = 0
+        var currentAngle = 0
+
+        var wrongLift = 0
+        var successfulLift = 0
+
+        for (i in 1 until dataPoints!!.size) {
+            val entry = dataPoints!![i]
+            val currentEstimatedAngle = entry.y
+            currentAngle = nearestRoundedNumber *
+                    Math.round(currentEstimatedAngle / nearestRoundedNumber)
+            if (liftType == LiftType.Squat){
+
+            }
+            else if (liftType == LiftType.Deadlift){
+
+            }
+            else if (liftType == LiftType.Benchpress){
+
+            }
+            if (previousAngle != currentAngle){
+                previousAngle = currentAngle
+            }
+        }
     }
 
     private fun measureSquats() {
