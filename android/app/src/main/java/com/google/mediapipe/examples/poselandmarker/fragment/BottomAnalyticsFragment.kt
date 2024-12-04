@@ -2,6 +2,7 @@ package com.google.mediapipe.examples.poselandmarker.fragment
 
 import android.content.DialogInterface
 import android.graphics.Color
+import android.graphics.Typeface
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import android.os.Bundle
 import android.view.ContextThemeWrapper
@@ -10,6 +11,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.LinearLayout
 import android.widget.TextView
+import androidx.core.content.ContextCompat
 import com.google.mediapipe.examples.poselandmarker.R
 import com.github.mikephil.charting.charts.LineChart
 import com.github.mikephil.charting.components.LimitLine
@@ -50,9 +52,9 @@ class AnalyticsBottomSheetFragment : BottomSheetDialogFragment() {
         lineChart = rootView.findViewById(R.id.lineChart)
         setupChart()
         val lifts = arrayListOf(
-            Pair(1, arrayListOf(100, 110, 120)),
-            Pair(2, arrayListOf(80, 90, 100)),
-            Pair(3, arrayListOf(60, 70, 80))
+            arrayListOf(Multiplier.DEEP),
+            arrayListOf(Multiplier.SHALLOW),
+            arrayListOf(Multiplier.ASS_TO_GRASS)
         )
 
         processLifts(lifts)
@@ -141,38 +143,73 @@ class AnalyticsBottomSheetFragment : BottomSheetDialogFragment() {
         return 120f // Placeholder value for demonstration
     }
 
-    private fun processLifts(liftData: ArrayList<Pair<Int, ArrayList<Int>>>) {
+    private fun processLifts(scoreData: ArrayList<ArrayList<Multiplier>>) {
         val liftCardsContainer = rootView.findViewById<LinearLayout>(R.id.lift_cards_container)
 
         // Clear existing cards if needed
         liftCardsContainer.removeAllViews()
 
-        // Add a card for each lift
-        for ((liftNumber, data) in liftData) {
+        var liftNumber = 1
+        for (liftData in scoreData) { // Iterate through the list of lifts
             val cardView = MaterialCardView(ContextThemeWrapper(requireContext(), R.style.MyCustomCardStyle)).apply {
                 layoutParams = LinearLayout.LayoutParams(
                     LinearLayout.LayoutParams.MATCH_PARENT,
                     LinearLayout.LayoutParams.WRAP_CONTENT
                 ).apply {
-                    setMargins(0, 0, 0, 16)
+                    setMargins(0, 0, 0, 16) // Add spacing between cards
                 }
             }
 
-//            // Add content inside the card
-//            val textView = TextView(requireContext()).apply {
-//                layoutParams = LinearLayout.LayoutParams(
-//                    LinearLayout.LayoutParams.MATCH_PARENT,
-//                    LinearLayout.LayoutParams.WRAP_CONTENT
-//                ).apply {
-//                    setMargins(16, 16, 16, 16) // Inner padding
-//                }
-//                text = "Lift $liftNumber: Placeholder data"
-//                textSize = 16f
-//            }
+            // Add a vertical LinearLayout inside the card for proper structure
+            val cardContentLayout = LinearLayout(requireContext()).apply {
+                orientation = LinearLayout.VERTICAL
+                layoutParams = LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.MATCH_PARENT,
+                    LinearLayout.LayoutParams.WRAP_CONTENT
+                ).apply {
+                    setMargins(16, 16, 16, 16) // Inner padding for the content
+                }
+            }
 
-//            cardView.addView(textView)
+            // Add a title TextView for the lift number
+            val titleTextView = TextView(requireContext()).apply {
+                layoutParams = LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.MATCH_PARENT,
+                    LinearLayout.LayoutParams.WRAP_CONTENT
+                )
+                text = "Lift $liftNumber"
+                textSize = 18f
+                setTypeface(typeface, Typeface.BOLD) // Make it bold
+                setTextColor(ContextCompat.getColor(requireContext(), android.R.color.black))
+            }
+
+            // Add the title and description to the card's content layout
+            cardContentLayout.addView(titleTextView)
+
+            // Add the content layout to the card
+            cardView.addView(cardContentLayout)
+
+            // Add a TextView for each multiplier in the lift data
+            for (multiplier in liftData) {
+                val multiplierTextView = TextView(requireContext()).apply {
+                    layoutParams = LinearLayout.LayoutParams(
+                        LinearLayout.LayoutParams.MATCH_PARENT,
+                        LinearLayout.LayoutParams.WRAP_CONTENT
+                    )
+                    text = multiplier.name.replace("_", " ") // Format enum names
+                    textSize = 16f
+                    setTextColor(ContextCompat.getColor(requireContext(), android.R.color.black))
+                }
+                cardContentLayout.addView(multiplierTextView) // Add each multiplier TextView to the card
+            }
+
+            // Add the card to the container
             liftCardsContainer.addView(cardView)
+
+            liftNumber += 1
         }
+
+
     }
 
 
