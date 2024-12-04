@@ -199,7 +199,7 @@ class AnalyticsBottomSheetFragment : BottomSheetDialogFragment() {
         axisRight.setDrawGridLines(false)
         axisRight.setDrawAxisLine(false)
 
-        val fullRangeThreshold = 60/180f
+        val fullRangeThreshold = 70/180f
         val fullStretchThreshold = 150/180f
 
         val deepSquatLimit = LimitLine(fullRangeThreshold, "Full Range")

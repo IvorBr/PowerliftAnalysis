@@ -78,11 +78,17 @@ enum class Landmark(val index: Int) {
     RIGHT_ANKLE(28)
 }
 enum class Multiplier(val score: Double) {
+    //SQUAT & BP MULTIPLIERS
     SHALLOW(0.5),
     SOLID(1.0),
     DEEP(1.2),
     EXTRA_DEEP(1.5),
-    ASS_TO_GRASS(2.0);
+
+    ASS_TO_GRASS(2.0),
+
+    // DEADLIFT MULTIPLIERS
+    LOCKOUT(1.0),
+    FAIL(0.5);
 }
 
 private fun determineDirection(a: Pair<Float, Float>, b: Pair<Float, Float>, c: Pair<Float, Float>): Boolean{
@@ -158,16 +164,8 @@ class OverlayView(context: Context?, attrs: AttributeSet?) :
     private var imageWidth: Int = 1
     private var imageHeight: Int = 1
 
-    private var succesfulLift: Boolean = false
-    private var triggered: Boolean = false
-
-    var liftCount: Int = 0
 
     private var finishedLift: Boolean = false
-    private var setLift: Boolean = false
-
-    private var damageEffectActive = false
-    private var damageTimer: CountDownTimer? = null
 
     var isSkeletonEnabled: Boolean = true
 
@@ -182,7 +180,7 @@ class OverlayView(context: Context?, attrs: AttributeSet?) :
     var totalScore = 0
     var score = 0
     var deepestAngle = 180.0f
-    val points = ArrayList<Multiplier>()
+    val scoreData = ArrayList<ArrayList<Multiplier>>()
 
     private var roundedHipAngle: Float = 0f
     var roundedKneeAngle: Float = 0f
@@ -328,6 +326,15 @@ class OverlayView(context: Context?, attrs: AttributeSet?) :
         roundedKneeAngle = (round(averageKneeAngle * 100) / 100).toFloat()  // Round to 2 decimal places
     }
 
+    private fun addPoints(lift: LiftType){
+        val multiplier = determineMultiplier(lift)
+        val newMultiplierArray = ArrayList<Multiplier>() // Example single-row array
+        newMultiplierArray.add(multiplier)
+        scoreData.add(newMultiplierArray)
+        val score = (100 * multiplier.score).toInt()
+        totalScore += score
+        deepestAngle = 180f
+    }
     private fun calculateAnglesBenchpress(){
         val rightElbowAngle = calculateAngle(rightShoulder, rightElbow, rightHand)
         val leftElbowAngle = calculateAngle(leftShoulder, leftElbow, leftHand)
@@ -336,100 +343,90 @@ class OverlayView(context: Context?, attrs: AttributeSet?) :
     }
 
     private fun benchpress(canvas: Canvas){
-        if (isTimerRunning){
-            calculateAnglesBenchpress()
+        if (isTimerRunning) return
+        calculateAnglesBenchpress()
 
-            if (succesfulLift && roundedElbowAngle >= 170){
-                liftCount += 1
-                finishedLift = true
-            }
-
-            if (roundedElbowAngle <= 90){
-                succesfulLift = true
-            }
+        if (!scoreAdded && roundedElbowAngle >= 170){
+            scoreAdded = true
+            deepestAngle = 180f
+            addPoints(LiftType.Benchpress)
         }
+
+        if (deepestAngle < roundedElbowAngle)
+            deepestAngle = roundedElbowAngle
+
+        if (roundedElbowAngle < 150){
+            scoreAdded = false
+        }
+
     }
 
     private fun deadlifts(canvas: Canvas){
-        if (isTimerRunning){
-            //
-            calculateAnglesDeadlifts()
+        if (!isTimerRunning) return
+        //
+        calculateAnglesDeadlifts()
 
-            if (succesfulLift){
-                liftCount += 1
-                finishedLift = true
-                succesfulLift = false
-            }
+        if (!scoreAdded) {
+            addPoints(LiftType.Deadlift)
+            scoreAdded = true
+        }
+        
 
-            if (finishedLift){
-                if (direction && roundedButtcheekAngle < 180)
-                    finishedLift = false
-                else if (!direction && roundedButtcheekAngle > 180){
-                    finishedLift = false
-                }
-            }
-
-            var statusText: String
-            statusText = if (!finishedLift) "Go up" else "Go down"
-
-            // Display lift count and status
-            val canvasHeight = canvas.height.toFloat()
-            val padding = 50f
-            //drawText(canvas, "Butt cheek angle: $roundedButtcheekAngle", padding,canvasHeight - 160f, Color.WHITE, 50f)
-            drawText(canvas, "Deadlift  Count: $liftCount", padding, canvasHeight - 220f, Color.YELLOW, 50f)
-            drawText(canvas, statusText, padding, canvasHeight - 280f, Color.GREEN, 50f)
-
-
-
+        if (direction && roundedButtcheekAngle < 90) {
+            scoreAdded = false
+        }
+        else if (!direction && roundedButtcheekAngle > 90+180){
+            scoreAdded = false
         }
     }
 
 
-    private fun determineMultiplier(): Multiplier {
-        val multiplier: Multiplier = when {
-            deepestAngle < 30 -> Multiplier.ASS_TO_GRASS
-            deepestAngle < 45 -> Multiplier.EXTRA_DEEP
-            deepestAngle < 60 -> Multiplier.DEEP
-            deepestAngle < 70 -> Multiplier.SOLID
-            else -> Multiplier.SHALLOW
+    private fun determineMultiplier(lift: LiftType): Multiplier {
+
+        if (lift == LiftType.Squat){
+            val multiplier: Multiplier = when {
+                deepestAngle < 30 -> Multiplier.ASS_TO_GRASS
+                deepestAngle < 45 -> Multiplier.EXTRA_DEEP
+                deepestAngle < 60 -> Multiplier.DEEP
+                deepestAngle < 70 -> Multiplier.SOLID
+                else -> Multiplier.SHALLOW
+            }
         }
+        else if (lift == LiftType.Benchpress){
+
+        }
+        else if ()
 
         // displayFeedback(deepestAngle) // Uncomment if needed
         return multiplier
     }
 
     private fun squats(canvas: Canvas) {
-        if (isTimerRunning) {
-            // Calculate angles for both knees and average them
-            calculateAnglesSquats()
+        if (isTimerRunning) return
+        // Calculate angles for both knees and average them
+        calculateAnglesSquats()
 
-            // Add the averaged knee angle to the squatAngles list
-            squatAngles.add(Entry(entryCount.toFloat(), roundedKneeAngle / 180f))
-            entryCount += 1
+        // Add the averaged knee angle to the squatAngles list
+        squatAngles.add(Entry(entryCount.toFloat(), roundedKneeAngle / 180f))
+        entryCount += 1
 
-            // Determine the status of the squat
-
-            if (roundedKneeAngle > 150 && !scoreAdded) {
-                scoreAdded = true
-                var multiplier = determineMultiplier()
-                score = (100*multiplier.score).toInt()
-                points.add(multiplier)
-                totalScore += score
-                deepestAngle = 180f
-            }
-
-            if (roundedKneeAngle < 120){
-                scoreAdded = false
-            }
-            if (roundedKneeAngle < deepestAngle){
-                deepestAngle = roundedKneeAngle
-            }
-
-            // Display lift count and status
-            val canvasHeight = canvas.height.toFloat()
-            val padding = 50f
-            drawText(canvas, "$totalScore", padding, canvasHeight - 140f, Color.WHITE, 50f)
+        if (roundedKneeAngle > 150 && !scoreAdded) {
+            scoreAdded = true
+            addPoints(LiftType.Squat)
         }
+
+        if (roundedKneeAngle < 120){
+            scoreAdded = false
+        }
+        if (roundedKneeAngle < deepestAngle){
+            deepestAngle = roundedKneeAngle
+        }
+
+        // Display lift count and status
+        val canvasHeight = canvas.height.toFloat()
+        val padding = 50f
+        drawText(canvas, "$totalScore", padding, canvasHeight - 140f, Color.WHITE, 50f)
+
     }
 
 
@@ -440,10 +437,6 @@ class OverlayView(context: Context?, attrs: AttributeSet?) :
     override fun draw(canvas: Canvas) {
         super.draw(canvas)
 
-        // Check if the damage effect is active
-        if (damageEffectActive) {
-            drawDamageEffect(canvas, context)
-        }
         results?.let { poseLandmarkerResult ->
 
             for(landmark in poseLandmarkerResult.landmarks()) {
@@ -539,78 +532,10 @@ class OverlayView(context: Context?, attrs: AttributeSet?) :
                 }
                 else if (currentLift == LiftType.Deadlift) { //deadlift
                     deadlifts(canvas)
-
                 }
             }
         }
     }
-
-
-
-    private fun triggerDamageEffect() {
-        damageEffectActive = true
-
-        // Cancel any existing timer to avoid overlapping
-        damageTimer?.cancel()
-
-        // Use a ValueAnimator to gradually increase the alpha value
-        val animator = ValueAnimator.ofFloat(0f, 150f)  // Fade from fully transparent to max opacity
-        animator.duration = 1000 // 1 second duration for fade-in effect
-        animator.addUpdateListener { animation ->
-            damageAlpha = animation.animatedValue as Float
-            invalidate() // Redraw the view with updated damage effect
-        }
-        animator.start()
-
-        // Optionally, reset damage effect after it has fully faded in
-        damageTimer = object : CountDownTimer(1000, 1000) {
-            override fun onTick(millisUntilFinished: Long) {
-                // Nothing needed here for this effect
-            }
-
-            override fun onFinish() {
-                damageEffectActive = false
-                invalidate() // Redraw to remove the effect after fading in
-            }
-        }.start()
-    }
-
-    private fun drawDamageEffect(canvas: Canvas, context: Context) {
-        // Load the vignette image as a bitmap
-        val vignetteBitmap = BitmapFactory.decodeResource(context.resources, R.drawable.vignette2)
-
-        // Create a mutable bitmap to modify it
-        val mutableBitmap = vignetteBitmap.copy(Bitmap.Config.ARGB_8888, true)
-
-        // Create a canvas to draw on the mutable bitmap
-        val canvasForBitmap = Canvas(mutableBitmap)
-
-        // Use a Paint object to draw a semi-transparent red overlay with the animated alpha value
-        val paint = Paint().apply {
-            color = Color.RED
-            alpha = damageAlpha.toInt()  // Use the animated alpha value
-            xfermode = PorterDuffXfermode(PorterDuff.Mode.MULTIPLY) // Blend mode for red tint
-        }
-
-        // Draw the red overlay onto the mutable bitmap
-        canvasForBitmap.drawRect(0f, 0f, mutableBitmap.width.toFloat(), mutableBitmap.height.toFloat(), paint)
-
-        // Scale the adjusted bitmap to fit the canvas size
-        val scaledBitmap = Bitmap.createScaledBitmap(
-            mutableBitmap,
-            canvas.width,
-            canvas.height,
-            true
-        )
-
-        // Draw the modified bitmap on the canvas
-        canvas.drawBitmap(scaledBitmap, 0f, 0f, null)
-    }
-
-
-
-
-
 
     fun setResults(
         poseLandmarkerResults: PoseLandmarkerResult,
