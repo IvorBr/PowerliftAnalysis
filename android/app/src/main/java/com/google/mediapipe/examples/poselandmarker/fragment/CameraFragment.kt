@@ -283,7 +283,6 @@ class CameraFragment : Fragment(), PoseLandmarkerHelper.LandmarkerListener {
         val updateInterval = 50L
         verticalProgress.max = 180
 
-        // ALS TIMER NIET MEER RUNT HAAL WEG EN ANDERE DINGEN NOG TOEVOEGEN
         verticalProgress.show()
         handler.post(object : Runnable {
             override fun run() {
@@ -322,6 +321,7 @@ class CameraFragment : Fragment(), PoseLandmarkerHelper.LandmarkerListener {
                     Handler(Looper.getMainLooper()).postDelayed({
                         showAnalyticsModal()
                         circularIndicator.setProgressCompat(0, false)
+                        fragmentCameraBinding.verticalProgress.hide()
                     }, 500)
                 }
             }
