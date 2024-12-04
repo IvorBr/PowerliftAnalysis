@@ -5,6 +5,7 @@ import android.graphics.Color
 import android.graphics.Typeface
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import android.os.Bundle
+import android.util.Log
 import android.view.ContextThemeWrapper
 import android.view.LayoutInflater
 import android.view.View
@@ -19,6 +20,7 @@ import com.github.mikephil.charting.data.Entry
 import com.github.mikephil.charting.data.LineData
 import com.github.mikephil.charting.data.LineDataSet
 import com.google.android.material.card.MaterialCardView
+import com.google.mediapipe.examples.poselandmarker.MainActivity
 import com.google.mediapipe.examples.poselandmarker.Multiplier
 import kotlin.math.sin
 
@@ -27,6 +29,7 @@ class AnalyticsBottomSheetFragment : BottomSheetDialogFragment() {
     private lateinit var lineChart: LineChart
     private var dataPoints: ArrayList<Entry>? = null
     private var scoreData: ArrayList<ArrayList<Multiplier>>? = null
+    var weight: Int = 0
 
     var onDismissCallback: (() -> Unit)? = null
     private var liftCount = 0f;
@@ -151,7 +154,7 @@ class AnalyticsBottomSheetFragment : BottomSheetDialogFragment() {
 
         var liftNumber = 1
         for (liftData in scoreData) { // Iterate through the list of lifts
-            val cardView = MaterialCardView(ContextThemeWrapper(requireContext(), R.style.MyCustomCardStyle)).apply {
+            val cardView = MaterialCardView(context, null, R.attr.cardStyle).apply {
                 layoutParams = LinearLayout.LayoutParams(
                     LinearLayout.LayoutParams.MATCH_PARENT,
                     LinearLayout.LayoutParams.WRAP_CONTENT
@@ -161,7 +164,7 @@ class AnalyticsBottomSheetFragment : BottomSheetDialogFragment() {
             }
 
             // Add a vertical LinearLayout inside the card for proper structure
-            val cardContentLayout = LinearLayout(requireContext()).apply {
+            val cardContentLayout = LinearLayout(context).apply {
                 orientation = LinearLayout.VERTICAL
                 layoutParams = LinearLayout.LayoutParams(
                     LinearLayout.LayoutParams.MATCH_PARENT,
@@ -172,7 +175,7 @@ class AnalyticsBottomSheetFragment : BottomSheetDialogFragment() {
             }
 
             // Add a title TextView for the lift number
-            val titleTextView = TextView(requireContext()).apply {
+            val titleTextView = TextView(context).apply {
                 layoutParams = LinearLayout.LayoutParams(
                     LinearLayout.LayoutParams.MATCH_PARENT,
                     LinearLayout.LayoutParams.WRAP_CONTENT
@@ -180,7 +183,7 @@ class AnalyticsBottomSheetFragment : BottomSheetDialogFragment() {
                 text = "Lift $liftNumber"
                 textSize = 18f
                 setTypeface(typeface, Typeface.BOLD) // Make it bold
-                setTextColor(ContextCompat.getColor(requireContext(), android.R.color.black))
+                setTextColor(ContextCompat.getColor(context, android.R.color.black))
             }
 
             // Add the title and description to the card's content layout
@@ -191,14 +194,14 @@ class AnalyticsBottomSheetFragment : BottomSheetDialogFragment() {
 
             // Add a TextView for each multiplier in the lift data
             for (multiplier in liftData) {
-                val multiplierTextView = TextView(requireContext()).apply {
+                val multiplierTextView = TextView(context).apply {
                     layoutParams = LinearLayout.LayoutParams(
                         LinearLayout.LayoutParams.MATCH_PARENT,
                         LinearLayout.LayoutParams.WRAP_CONTENT
                     )
                     text = multiplier.name.replace("_", " ") // Format enum names
                     textSize = 16f
-                    setTextColor(ContextCompat.getColor(requireContext(), android.R.color.black))
+                    setTextColor(ContextCompat.getColor(context, android.R.color.black))
                 }
                 cardContentLayout.addView(multiplierTextView) // Add each multiplier TextView to the card
             }
@@ -208,10 +211,7 @@ class AnalyticsBottomSheetFragment : BottomSheetDialogFragment() {
 
             liftNumber += 1
         }
-
-
     }
-
 
     private fun setupChart() {
         val dataSet = LineDataSet(dataPoints, "")
