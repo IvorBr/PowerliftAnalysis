@@ -18,6 +18,7 @@ package com.google.mediapipe.examples.poselandmarker.fragment
 import android.animation.Animator
 import android.animation.AnimatorListenerAdapter
 import android.animation.ObjectAnimator
+import android.animation.ValueAnimator
 import android.annotation.SuppressLint
 import android.content.res.Configuration
 import android.os.Bundle
@@ -29,6 +30,7 @@ import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.animation.LinearInterpolator
 import android.widget.AdapterView
 import android.widget.NumberPicker
 import android.widget.TextView
@@ -158,7 +160,7 @@ class CameraFragment : Fragment(), PoseLandmarkerHelper.LandmarkerListener {
         weightPicker.setFormatter { value -> (value * 5).toString() }
     }
 
-    fun fadeViews(vararg views: View, duration: Long = 300, fadeIn: Boolean = false) {
+    private fun fadeViews(vararg views: View, duration: Long = 300, fadeIn: Boolean = false) {
         views.forEach { view ->
             view.animate()
                 .alpha(if (fadeIn) 1f else 0f)
@@ -330,41 +332,46 @@ class CameraFragment : Fragment(), PoseLandmarkerHelper.LandmarkerListener {
 
     private fun startCountdown(countdownValues: List<String>, onCountdownFinish: () -> Unit) {
         val countdownText = fragmentCameraBinding.countdownText
-        val interval = 1000L // Total time per step in milliseconds
-
         countdownText.visibility = View.VISIBLE
 
-        for (i in countdownValues.indices) {
-            val delay = i * interval
+        fun animateCountdownStep(index: Int) {
+            if (index >= countdownValues.size) {
+                countdownText.visibility = View.GONE
+                onCountdownFinish()
+                return
+            }
 
-            Handler(Looper.getMainLooper()).postDelayed({
-                countdownText.text = countdownValues[i]
+            // Set the text for the current step
+            countdownText.text = countdownValues[index]
+            countdownText.scaleX = 1f
+            countdownText.scaleY = 1f
+            countdownText.alpha = 1f
 
-                // Scale up and fade in
-                countdownText.scaleX = 1f
-                countdownText.scaleY = 1f
-                countdownText.alpha = 1f
-
-                countdownText.animate()
-                    .scaleX(1.5f)
-                    .scaleY(1.5f)
-                    .alpha(1f)
-                    .setDuration(500)
-                    .withEndAction {
-                        countdownText.animate()
-                            .alpha(0f)
-                            .setDuration(500)
-                            .withEndAction {
-                                if (i == countdownValues.size - 1) {
-                                    onCountdownFinish()
-                                }
-                            }
-                            .start()
-                    }
-                    .start()
-            }, delay)
+            // Scale up and fade in
+            countdownText.animate()
+                .scaleX(1.5f)
+                .scaleY(1.5f)
+                .alpha(1f)
+                .setDuration(500)
+                .withEndAction {
+                    // Fade out after scale-up
+                    countdownText.animate()
+                        .alpha(0f)
+                        .setDuration(500)
+                        .withEndAction {
+                            // Move to the next step
+                            animateCountdownStep(index + 1)
+                        }
+                        .start()
+                }
+                .start()
         }
+
+        // Start the recursive animation
+        animateCountdownStep(0)
     }
+
+
 
     // Initialize CameraX, and prepare to bind the camera use cases
     private fun setUpCamera() {
