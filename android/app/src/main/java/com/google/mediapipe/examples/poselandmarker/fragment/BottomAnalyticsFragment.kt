@@ -17,12 +17,14 @@ import com.github.mikephil.charting.data.Entry
 import com.github.mikephil.charting.data.LineData
 import com.github.mikephil.charting.data.LineDataSet
 import com.google.android.material.card.MaterialCardView
+import com.google.mediapipe.examples.poselandmarker.Multiplier
 import kotlin.math.sin
 
 class AnalyticsBottomSheetFragment : BottomSheetDialogFragment() {
     private lateinit var rootView: View
     private lateinit var lineChart: LineChart
     private var dataPoints: ArrayList<Entry>? = null
+    private var scoreData: ArrayList<ArrayList<Multiplier>>? = null
 
     var onDismissCallback: (() -> Unit)? = null
     private var liftCount = 0f;
@@ -33,6 +35,10 @@ class AnalyticsBottomSheetFragment : BottomSheetDialogFragment() {
 
     fun setDataPoints(data: ArrayList<Entry>) {
         dataPoints = data
+    }
+
+    fun setScoreData(data: ArrayList<ArrayList<Multiplier>>) {
+        scoreData = data
     }
 
     override fun onCreateView(
