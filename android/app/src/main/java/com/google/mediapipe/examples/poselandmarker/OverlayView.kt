@@ -50,8 +50,7 @@ import kotlin.math.round
 enum class LiftType {
     Squat,
     Benchpress,
-    Deadlift,
-    None
+    Deadlift;
 }
 
 enum class Landmark(val index: Int) {
@@ -304,8 +303,8 @@ class OverlayView(context: Context?, attrs: AttributeSet?) :
         // Average the two knee angles
         val averageButtcheekAngle = (leftButtcheekData.first + rightButtcheekData.first)/2
 
-        if (!finishedLift)
-            succesfulLift = leftButtcheekData.second && rightButtcheekData.second
+        if (!scoreAdded)
+            finishedLift = leftButtcheekData.second && rightButtcheekData.second
 
         // Round to 2 decimal places for consistency
         //roundedKneeAngle = (round(averageKneeAngle * 100) / 100).toFloat()  // Round to 2 decimal places
@@ -366,11 +365,11 @@ class OverlayView(context: Context?, attrs: AttributeSet?) :
         //
         calculateAnglesDeadlifts()
 
-        if (!scoreAdded) {
+        if (!scoreAdded && finishedLift) {
             addPoints(LiftType.Deadlift)
             scoreAdded = true
         }
-        
+
 
         if (direction && roundedButtcheekAngle < 90) {
             scoreAdded = false
@@ -382,24 +381,35 @@ class OverlayView(context: Context?, attrs: AttributeSet?) :
 
 
     private fun determineMultiplier(lift: LiftType): Multiplier {
-
-        if (lift == LiftType.Squat){
-            val multiplier: Multiplier = when {
-                deepestAngle < 30 -> Multiplier.ASS_TO_GRASS
-                deepestAngle < 45 -> Multiplier.EXTRA_DEEP
-                deepestAngle < 60 -> Multiplier.DEEP
-                deepestAngle < 70 -> Multiplier.SOLID
-                else -> Multiplier.SHALLOW
+        return when (lift) {
+            LiftType.Squat -> {
+                when {
+                    deepestAngle < 30 -> Multiplier.ASS_TO_GRASS
+                    deepestAngle < 45 -> Multiplier.EXTRA_DEEP
+                    deepestAngle < 60 -> Multiplier.DEEP
+                    deepestAngle < 70 -> Multiplier.SOLID
+                    else -> Multiplier.SHALLOW
+                }
+            }
+            LiftType.Benchpress -> {
+                // Example logic for Benchpress (replace with your actual criteria)
+                when {
+                    // Add appropriate conditions here
+                    true -> Multiplier.SOLID // Replace "true" with an actual condition
+                    else -> Multiplier.SHALLOW
+                }
+            }
+            LiftType.Deadlift -> {
+                // Example logic for Deadlift (replace with your actual criteria)
+                when {
+                    // Add appropriate conditions here
+                    true -> Multiplier.EXTRA_DEEP // Replace "true" with an actual condition
+                    else -> Multiplier.SHALLOW
+                }
             }
         }
-        else if (lift == LiftType.Benchpress){
-
-        }
-        else if ()
-
-        // displayFeedback(deepestAngle) // Uncomment if needed
-        return multiplier
     }
+
 
     private fun squats(canvas: Canvas) {
         if (isTimerRunning) return
