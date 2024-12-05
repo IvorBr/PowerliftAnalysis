@@ -5,8 +5,6 @@ import android.graphics.Color
 import android.graphics.Typeface
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import android.os.Bundle
-import android.util.Log
-import android.view.ContextThemeWrapper
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -20,10 +18,8 @@ import com.github.mikephil.charting.data.Entry
 import com.github.mikephil.charting.data.LineData
 import com.github.mikephil.charting.data.LineDataSet
 import com.google.android.material.card.MaterialCardView
-import com.google.mediapipe.examples.poselandmarker.MainActivity
 import com.google.mediapipe.examples.poselandmarker.Multiplier
 import com.google.mediapipe.examples.poselandmarker.LiftType
-import kotlin.math.sin
 
 class AnalyticsBottomSheetFragment : BottomSheetDialogFragment() {
     private lateinit var rootView: View
@@ -65,7 +61,7 @@ class AnalyticsBottomSheetFragment : BottomSheetDialogFragment() {
             arrayListOf(Multiplier.SHALLOW),
             arrayListOf(Multiplier.ASS_TO_GRASS)
         )
-        processLifts(lifts)
+        processLifts(scoreData)
         setupLifts()
 
         return rootView
@@ -84,70 +80,72 @@ class AnalyticsBottomSheetFragment : BottomSheetDialogFragment() {
         return 120f // Placeholder value for demonstration
     }
 
-    private fun processLifts(scoreData: ArrayList<ArrayList<Multiplier>>) {
+    private fun processLifts(scoreData: ArrayList<ArrayList<Multiplier>>?) {
         val liftCardsContainer = rootView.findViewById<LinearLayout>(R.id.lift_cards_container)
 
         // Clear existing cards if needed
         liftCardsContainer.removeAllViews()
 
         var liftNumber = 1
-        for (liftData in scoreData) { // Iterate through the list of lifts
-            val cardView = MaterialCardView(context, null, R.attr.cardStyle).apply {
-                layoutParams = LinearLayout.LayoutParams(
-                    LinearLayout.LayoutParams.MATCH_PARENT,
-                    LinearLayout.LayoutParams.WRAP_CONTENT
-                ).apply {
-                    setMargins(0, 0, 0, 16) // Add spacing between cards
+        if (scoreData != null) {
+            for (liftData in scoreData) { // Iterate through the list of lifts
+                val cardView = MaterialCardView(context, null, R.attr.cardStyle).apply {
+                    layoutParams = LinearLayout.LayoutParams(
+                        LinearLayout.LayoutParams.MATCH_PARENT,
+                        LinearLayout.LayoutParams.WRAP_CONTENT
+                    ).apply {
+                        setMargins(0, 0, 0, 16) // Add spacing between cards
+                    }
                 }
-            }
 
-            // Add a vertical LinearLayout inside the card for proper structure
-            val cardContentLayout = LinearLayout(context).apply {
-                orientation = LinearLayout.VERTICAL
-                layoutParams = LinearLayout.LayoutParams(
-                    LinearLayout.LayoutParams.MATCH_PARENT,
-                    LinearLayout.LayoutParams.WRAP_CONTENT
-                ).apply {
-                    setMargins(16, 16, 16, 16) // Inner padding for the content
+                // Add a vertical LinearLayout inside the card for proper structure
+                val cardContentLayout = LinearLayout(context).apply {
+                    orientation = LinearLayout.VERTICAL
+                    layoutParams = LinearLayout.LayoutParams(
+                        LinearLayout.LayoutParams.MATCH_PARENT,
+                        LinearLayout.LayoutParams.WRAP_CONTENT
+                    ).apply {
+                        setMargins(16, 16, 16, 16) // Inner padding for the content
+                    }
                 }
-            }
 
-            // Add a title TextView for the lift number
-            val titleTextView = TextView(context).apply {
-                layoutParams = LinearLayout.LayoutParams(
-                    LinearLayout.LayoutParams.MATCH_PARENT,
-                    LinearLayout.LayoutParams.WRAP_CONTENT
-                )
-                text = "Lift $liftNumber"
-                textSize = 18f
-                setTypeface(typeface, Typeface.BOLD) // Make it bold
-                setTextColor(ContextCompat.getColor(context, android.R.color.black))
-            }
-
-            // Add the title and description to the card's content layout
-            cardContentLayout.addView(titleTextView)
-
-            // Add the content layout to the card
-            cardView.addView(cardContentLayout)
-
-            // Add a TextView for each multiplier in the lift data
-            for (multiplier in liftData) {
-                val multiplierTextView = TextView(context).apply {
+                // Add a title TextView for the lift number
+                val titleTextView = TextView(context).apply {
                     layoutParams = LinearLayout.LayoutParams(
                         LinearLayout.LayoutParams.MATCH_PARENT,
                         LinearLayout.LayoutParams.WRAP_CONTENT
                     )
-                    text = multiplier.name.replace("_", " ") // Format enum names
-                    textSize = 16f
+                    text = "Lift $liftNumber"
+                    textSize = 18f
+                    setTypeface(typeface, Typeface.BOLD) // Make it bold
                     setTextColor(ContextCompat.getColor(context, android.R.color.black))
                 }
-                cardContentLayout.addView(multiplierTextView) // Add each multiplier TextView to the card
+
+                // Add the title and description to the card's content layout
+                cardContentLayout.addView(titleTextView)
+
+                // Add the content layout to the card
+                cardView.addView(cardContentLayout)
+
+                // Add a TextView for each multiplier in the lift data
+                for (multiplier in liftData) {
+                    val multiplierTextView = TextView(context).apply {
+                        layoutParams = LinearLayout.LayoutParams(
+                            LinearLayout.LayoutParams.MATCH_PARENT,
+                            LinearLayout.LayoutParams.WRAP_CONTENT
+                        )
+                        text = multiplier.name.replace("_", " ") // Format enum names
+                        textSize = 16f
+                        setTextColor(ContextCompat.getColor(context, android.R.color.black))
+                    }
+                    cardContentLayout.addView(multiplierTextView) // Add each multiplier TextView to the card
+                }
+
+                // Add the card to the container
+                liftCardsContainer.addView(cardView)
+
+                liftNumber += 1
             }
-
-            // Add the card to the container
-            liftCardsContainer.addView(cardView)
-
-            liftNumber += 1
         }
     }
 
