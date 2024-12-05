@@ -118,7 +118,7 @@ class AnalyticsBottomSheetFragment : BottomSheetDialogFragment() {
                     text = "Lift $liftNumber"
                     textSize = 18f
                     setTypeface(typeface, Typeface.BOLD) // Make it bold
-                    setTextColor(R.style.AppTheme)
+                    setTextColor(android.R.attr.textColorPrimary)
                 }
 
                 // Add the title and description to the card's content layout
@@ -136,7 +136,7 @@ class AnalyticsBottomSheetFragment : BottomSheetDialogFragment() {
                         )
                         text = multiplier.name.replace("_", " ") // Format enum names
                         textSize = 16f
-                        setTextColor(R.style.AppTheme)
+                        setTextColor(android.R.attr.textColorPrimary)
                     }
                     cardContentLayout.addView(multiplierTextView) // Add each multiplier TextView to the card
                 }
