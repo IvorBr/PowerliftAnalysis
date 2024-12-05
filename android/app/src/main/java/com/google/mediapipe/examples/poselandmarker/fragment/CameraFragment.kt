@@ -60,7 +60,9 @@ import com.google.android.material.progressindicator.CircularProgressIndicator
 import com.google.mediapipe.examples.poselandmarker.LiftType
 import com.google.mediapipe.examples.poselandmarker.PoseLandmarkerHelper
 import com.google.mediapipe.examples.poselandmarker.MainViewModel
+import com.google.mediapipe.examples.poselandmarker.Multiplier
 import com.google.mediapipe.examples.poselandmarker.R
+import com.google.mediapipe.examples.poselandmarker.calculateLiftScore
 import com.google.mediapipe.examples.poselandmarker.fragment.AnalyticsBottomSheetFragment
 import com.google.mediapipe.examples.poselandmarker.databinding.FragmentCameraBinding
 import com.google.mediapipe.tasks.vision.core.RunningMode
@@ -206,12 +208,15 @@ class CameraFragment : Fragment(), PoseLandmarkerHelper.LandmarkerListener {
     }
 
     private var totalScore = 0
-    fun updateScore(liftScore: Int, updateTotal: Boolean) {
+    fun updateScore(multiplierArray: ArrayList<Multiplier>, updateTotal: Boolean) {
+        val liftScore = calculateLiftScore(multiplierArray, fragmentCameraBinding.overlay.weight)
         if (updateTotal) {
             totalScore += liftScore
             fragmentCameraBinding.totalScoreText.text = totalScore.toString()
         }
+
         displayText(listOf("+" + liftScore.toString()), fragmentCameraBinding.liftScore){}
+        displayText(listOf(multiplierArray.last().name), fragmentCameraBinding.liftScore){}
     }
 
     @SuppressLint("MissingPermission")

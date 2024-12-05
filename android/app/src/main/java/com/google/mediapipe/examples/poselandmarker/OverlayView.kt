@@ -188,7 +188,7 @@ class OverlayView(context: Context?, attrs: AttributeSet?) :
     private var finishedLift: Boolean = false
 
     var isTimerRunning = false
-    var updateScore: ((Int, Boolean) -> Unit)? = null
+    var updateScore: ((ArrayList<Multiplier>, Boolean) -> Unit)? = null
 
     val liftAngles = ArrayList<Entry>()
     var weight = 10
@@ -288,7 +288,7 @@ class OverlayView(context: Context?, attrs: AttributeSet?) :
 
     private fun handleMultiplier(multiplier: Multiplier, finished: Boolean=false){
         multiplierArray.add(multiplier)
-        updateScore?.invoke(calculateLiftScore(multiplierArray, weight), finished)
+        updateScore?.invoke(multiplierArray, finished)
 
         if (finished) {
             scoreData.add(ArrayList(multiplierArray))
