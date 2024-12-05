@@ -24,6 +24,7 @@ import com.github.mikephil.charting.data.LineDataSet
 import com.google.android.material.card.MaterialCardView
 import com.google.mediapipe.examples.poselandmarker.Multiplier
 import com.google.mediapipe.examples.poselandmarker.LiftType
+import com.google.mediapipe.examples.poselandmarker.Angle
 import com.google.mediapipe.examples.poselandmarker.calculateLiftScore
 import com.google.mediapipe.examples.poselandmarker.calculateTotalScore
 
@@ -200,8 +201,21 @@ class AnalyticsBottomSheetFragment : BottomSheetDialogFragment() {
         axisRight.setDrawGridLines(false)
         axisRight.setDrawAxisLine(false)
 
-        val fullRangeThreshold = 70 / 180f
-        val fullStretchThreshold = 150 / 180f
+        // Add limit lines
+        var fullRangeThreshold = 0f
+        var fullStretchThreshold = 0f
+        if (liftType == LiftType.Squat) {
+            fullRangeThreshold = Angle.SQ_SOLID.index / 180f
+            fullStretchThreshold = Angle.FULL_STRETCH.index / 180f
+        }
+        else if (liftType == LiftType.Benchpress){
+            fullRangeThreshold = Angle.BP_SOLID.index / 180f
+            fullStretchThreshold = Angle.FULL_STRETCH.index / 180f
+        }
+        else{ //deadlift
+            fullRangeThreshold = Angle.DL_LOCKOUT.index / 180f
+            fullStretchThreshold = Angle.RST_DEADLIFT.index / 180f
+        }
 
         val deepSquatLimit = LimitLine(fullRangeThreshold, "Full Range").apply {
             lineColor = Color.GRAY

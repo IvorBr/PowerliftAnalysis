@@ -54,11 +54,11 @@ fun calculateTotalScore(liftScoreData : ArrayList<ArrayList<Multiplier>>, weight
 }
 
 enum class Angle(val index: Float){
-    FULL_STRETCH(160f),
-    SQ_ATG(30f),
-    SQ_EXRA_DEEP(45f),
-    SQ_DEEP(60f),
-    SQ_SOLID(70f),
+    FULL_STRETCH(150f),
+    SQ_ATG(40f),
+    SQ_EXRA_DEEP(60f),
+    SQ_DEEP(70f),
+    SQ_SOLID(80f),
     SQ_SHALLOW(120f),
 
     BP_DEEP(60f),
@@ -187,19 +187,18 @@ class OverlayView(context: Context?, attrs: AttributeSet?) :
     var currentLift: LiftType = LiftType.Squat
     private var finishedLift: Boolean = false
 
-    private var timer: CountDownTimer? = null
     var isTimerRunning = false
-
     var updateScore: ((Int, Boolean) -> Unit)? = null
 
     val liftAngles = ArrayList<Entry>()
     var weight = 10
 
-    private var scoreAdded = false
+    private var scoreAdded = true
     private var deepestAngle = 180.0f
     val scoreData = ArrayList<ArrayList<Multiplier>>()
     val multiplierArray = ArrayList<Multiplier>()
 
+    private var cleared = false
 
     var currentAngle: Float = 0f
     private var determinedDirection: Boolean = false
@@ -218,8 +217,9 @@ class OverlayView(context: Context?, attrs: AttributeSet?) :
     private var rightAnkle: Pair<Float, Float> = Pair(0f, 0f)
     private var leftAnkle: Pair<Float, Float> = Pair(0f, 0f)
 
-    private var elapsedToGetMultiplier = 500f
+    private var elapsedToGetMultiplier = 1200f //1.2 seconds
     private var targetStartTime: Long = 0
+    private var liftStarted = true
 
     private var previousAngle = 0f
 
@@ -228,14 +228,6 @@ class OverlayView(context: Context?, attrs: AttributeSet?) :
         initPaints()
     }
 
-    fun clear() {
-        results = null
-        pointPaint.reset()
-        linePaint.reset()
-        invalidate()
-        initPaints()
-        stopTimer()
-    }
 
     private fun initPaints() {
         linePaint.color =
@@ -328,9 +320,7 @@ class OverlayView(context: Context?, attrs: AttributeSet?) :
     }
 
     private fun benchpress(canvas: Canvas){
-        if (!isTimerRunning) return
         calculateAnglesBenchpress()
-
         if (!scoreAdded && currentAngle >= Angle.FULL_STRETCH.index){
             finishLift()
         }
@@ -341,12 +331,10 @@ class OverlayView(context: Context?, attrs: AttributeSet?) :
         if (currentAngle < Angle.BP_SHALLOW.index){
             scoreAdded = false
         }
-        accumulateTimeMultiplier()
+        accumulateTimeMultiplier(canvas)
     }
 
     private fun deadlifts(canvas: Canvas){
-        if (!isTimerRunning) return
-        //
         calculateAnglesDeadlifts()
 
         if (!scoreAdded && finishedLift) {
@@ -364,7 +352,7 @@ class OverlayView(context: Context?, attrs: AttributeSet?) :
                 finishedLift = false
             }
         }
-        accumulateTimeMultiplier()
+        //accumulateTimeMultiplier(canvas)
     }
 
 
@@ -423,7 +411,7 @@ class OverlayView(context: Context?, attrs: AttributeSet?) :
     private fun checkSquatRange(): Boolean {
         val squatRange = when {
             previousAngle in Angle.FULL_STRETCH.index..Angle.FULL_STRETCH.index -> "FULL_STRETCH"
-            previousAngle in Angle.SQ_ATG.index..Angle.SQ_ATG.index -> "SQ_ATG"
+            previousAngle in 0f..Angle.SQ_ATG.index -> "SQ_ATG"
             previousAngle in Angle.SQ_EXRA_DEEP.index..Angle.SQ_EXRA_DEEP.index -> "SQ_EXRA_DEEP"
             previousAngle in Angle.SQ_DEEP.index..Angle.SQ_SOLID.index -> "SQ_DEEP"
             previousAngle in Angle.SQ_SOLID.index..Angle.SQ_SHALLOW.index -> "SQ_SOLID"
@@ -432,32 +420,36 @@ class OverlayView(context: Context?, attrs: AttributeSet?) :
         }
 
         val currentSquatRange = when {
-            previousAngle in Angle.FULL_STRETCH.index..Angle.FULL_STRETCH.index -> "FULL_STRETCH"
-            previousAngle in Angle.SQ_ATG.index..Angle.SQ_ATG.index -> "SQ_ATG"
-            previousAngle in Angle.SQ_EXRA_DEEP.index..Angle.SQ_EXRA_DEEP.index -> "SQ_EXRA_DEEP"
-            previousAngle in Angle.SQ_DEEP.index..Angle.SQ_SOLID.index -> "SQ_DEEP"
-            previousAngle in Angle.SQ_SOLID.index..Angle.SQ_SHALLOW.index -> "SQ_SOLID"
-            previousAngle in Angle.SQ_SHALLOW.index..Angle.SQ_SHALLOW.index -> "SQ_SHALLOW"
+            currentAngle in Angle.FULL_STRETCH.index..Angle.FULL_STRETCH.index -> "FULL_STRETCH"
+            currentAngle in 0f ..Angle.SQ_ATG.index -> "SQ_ATG"
+            currentAngle in Angle.SQ_EXRA_DEEP.index..Angle.SQ_EXRA_DEEP.index -> "SQ_EXRA_DEEP"
+            currentAngle in Angle.SQ_DEEP.index..Angle.SQ_SOLID.index -> "SQ_DEEP"
+            currentAngle in Angle.SQ_SOLID.index..Angle.SQ_SHALLOW.index -> "SQ_SOLID"
+            currentAngle in Angle.SQ_SHALLOW.index..Angle.SQ_SHALLOW.index -> "SQ_SHALLOW"
             else -> "OUTSIDE"
         }
-
+        if (currentSquatRange == "OUTSIDE")
+            return false
         return squatRange == currentSquatRange
     }
 
     // Function to check Bench Press Range
     private fun checkBenchPressRange(): Boolean {
         val benchPressRange = when {
+            previousAngle in 0f..Angle.BP_DEEP.index -> "BP_DEEP"
             previousAngle in Angle.BP_DEEP.index..Angle.BP_SOLID.index -> "BP_DEEP_TO_SOLID"
             previousAngle in Angle.BP_SOLID.index..Angle.BP_SHALLOW.index -> "BP_SOLID_TO_SHALLOW"
             else -> "OUTSIDE"
         }
 
         val currentBenchPressRange = when {
-            previousAngle in Angle.BP_DEEP.index..Angle.BP_SOLID.index -> "BP_DEEP_TO_SOLID"
-            previousAngle in Angle.BP_SOLID.index..Angle.BP_SHALLOW.index -> "BP_SOLID_TO_SHALLOW"
+            currentAngle in 0f..Angle.BP_DEEP.index -> "BP_DEEP"
+            currentAngle in Angle.BP_DEEP.index..Angle.BP_SOLID.index -> "BP_DEEP_TO_SOLID"
+            currentAngle in Angle.BP_SOLID.index..Angle.BP_SHALLOW.index -> "BP_SOLID_TO_SHALLOW"
             else -> "OUTSIDE"
         }
-
+        if (benchPressRange == "OUTSIDE")
+            return false
         return benchPressRange == currentBenchPressRange
     }
 
@@ -467,27 +459,33 @@ class OverlayView(context: Context?, attrs: AttributeSet?) :
         return previousAngle in Angle.RST_DEADLIFT.index..Angle.DL_LOCKOUT.index
     }
 
+    private fun clear(){
+        multiplierArray.clear()
+        liftStarted = false
+        determinedDirection = false
+        updateScore?.invoke(calculateLiftScore(multiplierArray), true)
+    }
 
-
-    private fun accumulateTimeMultiplier(){
+    private fun accumulateTimeMultiplier(canvas: Canvas){
+        if(!liftStarted){
+            targetStartTime = System.currentTimeMillis()
+            liftStarted = true
+        }
         if (sameRange()) {
-            if (targetStartTime - SystemClock.elapsedRealtime() >= elapsedToGetMultiplier) {
+            if (System.currentTimeMillis() - targetStartTime  >= elapsedToGetMultiplier) {
                 handleMultiplier(determineMultiplier())
-                targetStartTime = SystemClock.elapsedRealtime()
+                targetStartTime = System.currentTimeMillis()
             }
         }
         else{
-            targetStartTime = SystemClock.elapsedRealtime()
+            targetStartTime = System.currentTimeMillis()
         }
     }
 
     private fun squats(canvas: Canvas) {
-        if (!isTimerRunning) return
         // Calculate angles for both knees and average them
         calculateAnglesSquats()
         // Add the averaged knee angle to the liftAngles list
-        liftAngles.add(Entry(entryCount.toFloat(), currentAngle / 180f)) // normalize
-        entryCount += 1
 
         if (currentAngle > Angle.FULL_STRETCH.index && !scoreAdded) {
             finishLift()
@@ -498,16 +496,10 @@ class OverlayView(context: Context?, attrs: AttributeSet?) :
         if (currentAngle < deepestAngle){
             deepestAngle = currentAngle
         }
-        accumulateTimeMultiplier()
-    }
-
-    private fun stopTimer() {
-        timer?.cancel()
+        accumulateTimeMultiplier(canvas)
     }
 
     override fun draw(canvas: Canvas) {
-        if (!isTimerRunning) multiplierArray.clear() // This will clear multiplier array every frame..
-
         super.draw(canvas)
 
         results?.let { poseLandmarkerResult ->
@@ -536,6 +528,7 @@ class OverlayView(context: Context?, attrs: AttributeSet?) :
                         )
                     }
                 }
+                if (isTimerRunning){
                 rightShoulder = Pair(
                     poseLandmarkerResult.landmarks().get(0).get(Landmark.RIGHT_SHOULDER.index).x(),
                     poseLandmarkerResult.landmarks().get(0).get(Landmark.RIGHT_SHOULDER.index).y()
@@ -605,6 +598,16 @@ class OverlayView(context: Context?, attrs: AttributeSet?) :
                 }
                 else if (currentLift == LiftType.Deadlift) { //deadlift
                     deadlifts(canvas)
+                }
+                liftAngles.add(Entry(entryCount.toFloat(), currentAngle / 180f)) // normalize
+                entryCount += 1
+                cleared = false
+                }
+                else{
+                    if (!cleared) {
+                        clear()
+                        cleared = true
+                    }
                 }
             }
         }
