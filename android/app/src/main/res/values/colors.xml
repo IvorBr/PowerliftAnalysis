@@ -30,8 +30,6 @@
 
     <!-- Background Colors -->
     <color name="toolbar_background">#FAFAFA</color> <!-- Light Gray -->
-    <color name="bottom_sheet_background">#F5F5F5</color> <!-- Slightly Off White -->
-    <color name="bottom_sheet_text_color">#212121</color> <!-- Dark Gray -->
 
     <!-- Icon States -->
     <color name="icActive">#FF6F00</color> <!-- Active Icon in Primary Orange -->

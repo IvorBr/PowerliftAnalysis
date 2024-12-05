@@ -37,6 +37,21 @@ import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.round
 
+fun calculateLiftScore(multipliers : ArrayList<Multiplier>, weight:Int): Int{
+    var liftScore = 0
+    for (multiplier in multipliers){
+        liftScore += (weight*multiplier.score).toInt()
+    }
+    return liftScore
+}
+
+fun calculateTotalScore(liftScoreData : ArrayList<ArrayList<Multiplier>>, weight:Int): Int{
+    var totalScore = 0
+    for (liftData in liftScoreData) {
+        totalScore += calculateLiftScore(liftData, weight)
+    }
+    return totalScore
+}
 
 enum class Angle(val index: Float){
     FULL_STRETCH(160f),
@@ -222,22 +237,6 @@ class OverlayView(context: Context?, attrs: AttributeSet?) :
         stopTimer()
     }
 
-    private fun calculateLiftScore(multipliers : ArrayList<Multiplier>): Int{
-        var liftScore = 0
-        for (multiplier in multipliers){
-            liftScore += (weight*multiplier.score).toInt()
-        }
-        return liftScore
-    }
-
-    fun calculateTotalScore(liftScoreData : ArrayList<ArrayList<Multiplier>>): Int{
-        var totalScore = 0
-        for (liftData in liftScoreData) {
-            totalScore += calculateLiftScore(liftData)
-        }
-        return totalScore
-    }
-
     private fun initPaints() {
         linePaint.color =
             ContextCompat.getColor(context!!, R.color.mp_color_primary)
@@ -298,7 +297,7 @@ class OverlayView(context: Context?, attrs: AttributeSet?) :
 
     private fun handleMultiplier(multiplier: Multiplier, finished: Boolean=false){
         multiplierArray.add(multiplier)
-        updateScore?.invoke(calculateLiftScore(multiplierArray), finished)
+        updateScore?.invoke(calculateLiftScore(multiplierArray, weight), finished)
 
         if (finished) {
             scoreData.add(ArrayList(multiplierArray))
