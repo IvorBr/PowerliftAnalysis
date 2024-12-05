@@ -47,6 +47,22 @@ import kotlin.math.atan2
 import kotlin.math.PI
 import kotlin.math.round
 
+enum class Angle(val index: Float){
+    FULL_STRETCH(160f),
+    SQ_ATG(30f),
+    SQ_EXRA_DEEP(45f),
+    SQ_DEEP(60f),
+    SQ_SOLID(70f),
+    SQ_SHALLOW(120f),
+
+    BP_DEEP(60f),
+    BP_SOLID(90f),
+    BP_SHALLOW(120f),
+
+    RST_DEADLIFT(90f),
+    DL_LOCKOUT(180f)
+}
+
 enum class LiftType {
     Squat,
     Benchpress,
@@ -196,6 +212,7 @@ class OverlayView(context: Context?, attrs: AttributeSet?) :
     private var rightAnkle: Pair<Float, Float> = Pair(0f, 0f)
     private var leftAnkle: Pair<Float, Float> = Pair(0f, 0f)
 
+    private var elapsedToGetMultiplier = 500f
     private var targetStartTime: Long = 0
     private var isInTargetRange: Boolean = false
     private var isInTargetRange_DEEP: Boolean = false
@@ -309,13 +326,13 @@ class OverlayView(context: Context?, attrs: AttributeSet?) :
         multiplierArray.clear()
 
         if (currentLift != LiftType.Deadlift){
-            deepestAngle = 180f
+            deepestAngle = Angle.FULL_STRETCH.index
         }
         else{
             if (direction)
-                deepestAngle = 90f
+                deepestAngle = Angle.RST_DEADLIFT.index
             else
-                deepestAngle = 270f
+                deepestAngle = 360f - Angle.RST_DEADLIFT.index
         }
     }
 
@@ -330,14 +347,14 @@ class OverlayView(context: Context?, attrs: AttributeSet?) :
         if (!isTimerRunning) return
         calculateAnglesBenchpress()
 
-        if (!scoreAdded && roundedElbowAngle >= 170){
+        if (!scoreAdded && roundedElbowAngle >= Angle.FULL_STRETCH.index){
             finishLift()
         }
 
         if (deepestAngle < roundedElbowAngle)
             deepestAngle = roundedElbowAngle
 
-        if (roundedElbowAngle < 150){
+        if (roundedElbowAngle < Angle.BP_SHALLOW.index){
             scoreAdded = false
         }
 
@@ -354,12 +371,12 @@ class OverlayView(context: Context?, attrs: AttributeSet?) :
         }
 
         if (direction) {
-            if (roundedButtcheekAngle < 90) {
+            if (roundedButtcheekAngle < Angle.RST_DEADLIFT.index) {
                 scoreAdded = false
                 finishedLift = false
             }
         } else {
-            if (roundedButtcheekAngle > 270) { // 90 + 180 simplified
+            if (roundedButtcheekAngle > 360 - Angle.RST_DEADLIFT.index) {
                 scoreAdded = false
                 finishedLift = false
             }
@@ -372,18 +389,18 @@ class OverlayView(context: Context?, attrs: AttributeSet?) :
         return when (currentLift) {
             LiftType.Squat -> {
                 when {
-                    deepestAngle < 30 -> Multiplier.ASS_TO_GRASS
-                    deepestAngle < 45 -> Multiplier.EXTRA_DEEP
-                    deepestAngle < 60 -> Multiplier.DEEP
-                    deepestAngle < 70 -> Multiplier.SOLID
+                    deepestAngle < Angle.SQ_ATG.index       -> Multiplier.ASS_TO_GRASS
+                    deepestAngle < Angle.SQ_EXRA_DEEP.index -> Multiplier.EXTRA_DEEP
+                    deepestAngle < Angle.SQ_DEEP.index      -> Multiplier.DEEP
+                    deepestAngle < Angle.SQ_SOLID.index     -> Multiplier.SOLID
                     else -> Multiplier.SHALLOW
                 }
             }
             LiftType.Benchpress -> {
                 // Example logic for Benchpress (replace with your actual criteria)
                 when {
-                    deepestAngle < 60 -> Multiplier.DEEP
-                    deepestAngle < 90 -> Multiplier.SOLID
+                    deepestAngle < Angle.BP_DEEP.index -> Multiplier.DEEP
+                    deepestAngle < Angle.BP_SOLID.index -> Multiplier.SOLID
                     else -> Multiplier.SHALLOW
                 }
             }
@@ -391,14 +408,14 @@ class OverlayView(context: Context?, attrs: AttributeSet?) :
                 if (direction){
                 // Example logic for Deadlift (replace with your actual criteria)
                     when {
-                        deepestAngle > 180 -> Multiplier.LOCKOUT
+                        deepestAngle > Angle.DL_LOCKOUT.index -> Multiplier.LOCKOUT
                         else -> Multiplier.FAIL
 
                     }
                 }
                 else{
                     when {
-                        deepestAngle < 180 -> Multiplier.LOCKOUT
+                        deepestAngle < Angle.DL_LOCKOUT.index -> Multiplier.LOCKOUT
                         else -> Multiplier.FAIL
                     }
                 }
@@ -416,7 +433,7 @@ class OverlayView(context: Context?, attrs: AttributeSet?) :
                 targetStartTime = SystemClock.elapsedRealtime() // Record the start time
                 isInTargetRange = true
             }
-            if (SystemClock.elapsedRealtime() - targetStartTime >= 500){
+            if (SystemClock.elapsedRealtime() - targetStartTime >= elapsedToGetMultiplier){
                 targetStartTime = SystemClock.elapsedRealtime()
                 handleMultiplier(determineMultiplier())
             }
@@ -431,7 +448,7 @@ class OverlayView(context: Context?, attrs: AttributeSet?) :
                 targetStartTime = SystemClock.elapsedRealtime() // Record the start time
                 isInTargetRange_DEEP = true
             }
-            if (SystemClock.elapsedRealtime() - targetStartTime >= 500){
+            if (SystemClock.elapsedRealtime() - targetStartTime >= elapsedToGetMultiplier){
                 targetStartTime = SystemClock.elapsedRealtime()
                 handleMultiplier(determineMultiplier())
             }
@@ -446,7 +463,7 @@ class OverlayView(context: Context?, attrs: AttributeSet?) :
                 targetStartTime = SystemClock.elapsedRealtime() // Record the start time
                 isInTargetRange_ATG = true
             }
-            if (SystemClock.elapsedRealtime() - targetStartTime >= 500){
+            if (SystemClock.elapsedRealtime() - targetStartTime >= elapsedToGetMultiplier){
                 targetStartTime = SystemClock.elapsedRealtime()
                 handleMultiplier(determineMultiplier())
             }
@@ -462,13 +479,13 @@ class OverlayView(context: Context?, attrs: AttributeSet?) :
         // Calculate angles for both knees and average them
         calculateAnglesSquats()
         // Add the averaged knee angle to the liftAngles list
-        liftAngles.add(Entry(entryCount.toFloat(), roundedKneeAngle / 180f))
+        liftAngles.add(Entry(entryCount.toFloat(), roundedKneeAngle / 180f)) // normalize
         entryCount += 1
 
-        if (roundedKneeAngle > 150 && !scoreAdded) {
+        if (roundedKneeAngle > Angle.FULL_STRETCH.index && !scoreAdded) {
             finishLift()
         }
-        if (roundedKneeAngle < 120){
+        if (roundedKneeAngle < Angle.SQ_SHALLOW.index){
             scoreAdded = false
         }
         if (roundedKneeAngle < deepestAngle){
@@ -486,6 +503,8 @@ class OverlayView(context: Context?, attrs: AttributeSet?) :
     }
 
     override fun draw(canvas: Canvas) {
+        if (!isTimerRunning) multiplierArray.clear() // This will clear multiplier array every frame..
+
         super.draw(canvas)
 
         results?.let { poseLandmarkerResult ->
