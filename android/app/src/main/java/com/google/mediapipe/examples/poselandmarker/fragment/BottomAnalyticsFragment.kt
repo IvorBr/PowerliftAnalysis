@@ -66,12 +66,12 @@ class AnalyticsBottomSheetFragment : BottomSheetDialogFragment() {
 
         lineChart = rootView.findViewById(R.id.lineChart)
         setupChart()
+
         val lifts = arrayListOf(
             arrayListOf(Multiplier.DEEP),
             arrayListOf(Multiplier.SHALLOW),
             arrayListOf(Multiplier.ASS_TO_GRASS)
         )
-        processLifts(scoreData)
 
         processLifts(scoreData)
 
@@ -238,7 +238,7 @@ class AnalyticsBottomSheetFragment : BottomSheetDialogFragment() {
         }
         axisRight.addLimitLine(fullyStretchedLimit)
 
-        lineChart.setVisibleXRangeMaximum(200f)
+        lineChart.setVisibleXRangeMaximum(300f)
         lineChart.moveViewToX(0f)
         lineChart.invalidate()
     }
