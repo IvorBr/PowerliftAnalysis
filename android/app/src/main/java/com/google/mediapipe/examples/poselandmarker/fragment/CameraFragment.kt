@@ -289,7 +289,7 @@ class CameraFragment : Fragment(), PoseLandmarkerHelper.LandmarkerListener {
         verticalProgress.show()
         handler.post(object : Runnable {
             override fun run() {
-                val currentDepth = fragmentCameraBinding.overlay.roundedKneeAngle
+                val currentDepth = fragmentCameraBinding.overlay.currentAngle
                 verticalProgress.setProgressCompat(currentDepth.toInt(), true)
                 handler.postDelayed(this, updateInterval)
             }

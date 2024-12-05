@@ -192,10 +192,8 @@ class OverlayView(context: Context?, attrs: AttributeSet?) :
     val scoreData = ArrayList<ArrayList<Multiplier>>()
     val multiplierArray = ArrayList<Multiplier>()
 
-    var roundedKneeAngle: Float = 0f
-    private var roundedButtcheekAngle: Float = 0f
-    private var roundedElbowAngle: Float = 0f
 
+    var currentAngle: Float = 0f
     private var determinedDirection: Boolean = false
     private var direction: Boolean = false
 
@@ -214,16 +212,8 @@ class OverlayView(context: Context?, attrs: AttributeSet?) :
 
     private var elapsedToGetMultiplier = 500f
     private var targetStartTime: Long = 0
-    private var isInTargetRange: Boolean = false
-    private var isInTargetRange_DEEP: Boolean = false
-    private var isInTargetRange_ATG: Boolean = false
-    private val TARGET_MIN_ANGLE = 45f
-    private val TARGET_MAX_ANGLE = 70f
-    private val TARGET_MIN_DEEP_ANGLE = 30f
-    private val TARGET_MAX_DEEP_ANGLE = 45f
-    private val TARGET_MIN_ATG_ANGLE = 0f
-    private val TARGET_MAX_ATG_ANGLE = 30f
 
+    private var previousAngle = 0f
 
 
     init {
@@ -297,7 +287,7 @@ class OverlayView(context: Context?, attrs: AttributeSet?) :
         if (!scoreAdded)
             finishedLift = leftButtcheekData.second && rightButtcheekData.second
 
-        roundedButtcheekAngle = (round(averageButtcheekAngle*100)/100)
+        currentAngle = (round(averageButtcheekAngle*100)/100)
 
 
 
@@ -311,7 +301,7 @@ class OverlayView(context: Context?, attrs: AttributeSet?) :
         val averageKneeAngle = (rightKneeAngle + leftKneeAngle) / 2
 
         // Round to 2 decimal places for consistency
-        roundedKneeAngle = (round(averageKneeAngle * 100) / 100).toFloat()  // Round to 2 decimal places
+        currentAngle = (round(averageKneeAngle * 100) / 100).toFloat()  // Round to 2 decimal places
     }
 
     private fun handleMultiplier(multiplier: Multiplier){
@@ -340,24 +330,24 @@ class OverlayView(context: Context?, attrs: AttributeSet?) :
         val rightElbowAngle = calculateAngle(rightShoulder, rightElbow, rightHand)
         val leftElbowAngle = calculateAngle(leftShoulder, leftElbow, leftHand)
 
-        roundedElbowAngle = (rightElbowAngle + leftElbowAngle)/2
+        currentAngle = (rightElbowAngle + leftElbowAngle)/2
     }
 
     private fun benchpress(canvas: Canvas){
         if (!isTimerRunning) return
         calculateAnglesBenchpress()
 
-        if (!scoreAdded && roundedElbowAngle >= Angle.FULL_STRETCH.index){
+        if (!scoreAdded && currentAngle >= Angle.FULL_STRETCH.index){
             finishLift()
         }
 
-        if (deepestAngle < roundedElbowAngle)
-            deepestAngle = roundedElbowAngle
+        if (deepestAngle < currentAngle)
+            deepestAngle = currentAngle
 
-        if (roundedElbowAngle < Angle.BP_SHALLOW.index){
+        if (currentAngle < Angle.BP_SHALLOW.index){
             scoreAdded = false
         }
-
+        accumulateTimeMultiplier()
     }
 
     private fun deadlifts(canvas: Canvas){
@@ -366,22 +356,21 @@ class OverlayView(context: Context?, attrs: AttributeSet?) :
         calculateAnglesDeadlifts()
 
         if (!scoreAdded && finishedLift) {
-
             finishLift()
         }
 
         if (direction) {
-            if (roundedButtcheekAngle < Angle.RST_DEADLIFT.index) {
+            if (currentAngle < Angle.RST_DEADLIFT.index) {
                 scoreAdded = false
                 finishedLift = false
             }
         } else {
-            if (roundedButtcheekAngle > 360 - Angle.RST_DEADLIFT.index) {
+            if (currentAngle > 360 - Angle.RST_DEADLIFT.index) {
                 scoreAdded = false
                 finishedLift = false
             }
         }
-
+        accumulateTimeMultiplier()
     }
 
 
@@ -410,7 +399,6 @@ class OverlayView(context: Context?, attrs: AttributeSet?) :
                     when {
                         deepestAngle > Angle.DL_LOCKOUT.index -> Multiplier.LOCKOUT
                         else -> Multiplier.FAIL
-
                     }
                 }
                 else{
@@ -423,54 +411,79 @@ class OverlayView(context: Context?, attrs: AttributeSet?) :
         }
     }
 
+    private fun sameRange(): Boolean {
+        // Check the range based on the current lift and get the result
+        val result = when (currentLift) {
+            LiftType.Squat -> checkSquatRange()
+            LiftType.Benchpress -> checkBenchPressRange()
+            LiftType.Deadlift -> checkDeadliftRange()
+            else -> false
+        }
+
+        // Update previousAngle to currentAngle before returning the result
+        previousAngle = currentAngle
+        return result
+    }
+
+    // Function to check Squat Range
+    private fun checkSquatRange(): Boolean {
+        val squatRange = when {
+            previousAngle in Angle.FULL_STRETCH.index..Angle.FULL_STRETCH.index -> "FULL_STRETCH"
+            previousAngle in Angle.SQ_ATG.index..Angle.SQ_ATG.index -> "SQ_ATG"
+            previousAngle in Angle.SQ_EXRA_DEEP.index..Angle.SQ_EXRA_DEEP.index -> "SQ_EXRA_DEEP"
+            previousAngle in Angle.SQ_DEEP.index..Angle.SQ_SOLID.index -> "SQ_DEEP"
+            previousAngle in Angle.SQ_SOLID.index..Angle.SQ_SHALLOW.index -> "SQ_SOLID"
+            previousAngle in Angle.SQ_SHALLOW.index..Angle.SQ_SHALLOW.index -> "SQ_SHALLOW"
+            else -> "OUTSIDE"
+        }
+
+        val currentSquatRange = when {
+            previousAngle in Angle.FULL_STRETCH.index..Angle.FULL_STRETCH.index -> "FULL_STRETCH"
+            previousAngle in Angle.SQ_ATG.index..Angle.SQ_ATG.index -> "SQ_ATG"
+            previousAngle in Angle.SQ_EXRA_DEEP.index..Angle.SQ_EXRA_DEEP.index -> "SQ_EXRA_DEEP"
+            previousAngle in Angle.SQ_DEEP.index..Angle.SQ_SOLID.index -> "SQ_DEEP"
+            previousAngle in Angle.SQ_SOLID.index..Angle.SQ_SHALLOW.index -> "SQ_SOLID"
+            previousAngle in Angle.SQ_SHALLOW.index..Angle.SQ_SHALLOW.index -> "SQ_SHALLOW"
+            else -> "OUTSIDE"
+        }
+
+        return squatRange == currentSquatRange
+    }
+
+    // Function to check Bench Press Range
+    private fun checkBenchPressRange(): Boolean {
+        val benchPressRange = when {
+            previousAngle in Angle.BP_DEEP.index..Angle.BP_SOLID.index -> "BP_DEEP_TO_SOLID"
+            previousAngle in Angle.BP_SOLID.index..Angle.BP_SHALLOW.index -> "BP_SOLID_TO_SHALLOW"
+            else -> "OUTSIDE"
+        }
+
+        val currentBenchPressRange = when {
+            previousAngle in Angle.BP_DEEP.index..Angle.BP_SOLID.index -> "BP_DEEP_TO_SOLID"
+            previousAngle in Angle.BP_SOLID.index..Angle.BP_SHALLOW.index -> "BP_SOLID_TO_SHALLOW"
+            else -> "OUTSIDE"
+        }
+
+        return benchPressRange == currentBenchPressRange
+    }
+
+    // Function to check Deadlift Range
+    private fun checkDeadliftRange(): Boolean {
+        // Deadlift Range Check (Check if the previousAngle is in the same range as the current deadlift depth)
+        return previousAngle in Angle.RST_DEADLIFT.index..Angle.DL_LOCKOUT.index
+    }
 
 
-    private fun accumulateTimes(){
-        // Check if the current angle is within the target range
-        if (roundedKneeAngle in TARGET_MIN_ANGLE..TARGET_MAX_ANGLE) {
-            if (!isInTargetRange) {
-                // The user just entered the target range
-                targetStartTime = SystemClock.elapsedRealtime() // Record the start time
-                isInTargetRange = true
-            }
-            if (SystemClock.elapsedRealtime() - targetStartTime >= elapsedToGetMultiplier){
-                targetStartTime = SystemClock.elapsedRealtime()
+
+    private fun accumulateTimeMultiplier(){
+        if (sameRange()) {
+            if (targetStartTime - SystemClock.elapsedRealtime() >= elapsedToGetMultiplier) {
                 handleMultiplier(determineMultiplier())
-            }
-        } else {
-            if (isInTargetRange) {
-                isInTargetRange = false
+                targetStartTime = SystemClock.elapsedRealtime()
             }
         }
-        if (roundedKneeAngle in TARGET_MIN_DEEP_ANGLE ..TARGET_MAX_DEEP_ANGLE){
-            if (!isInTargetRange_DEEP) {
-                // The user just entered the target range
-                targetStartTime = SystemClock.elapsedRealtime() // Record the start time
-                isInTargetRange_DEEP = true
-            }
-            if (SystemClock.elapsedRealtime() - targetStartTime >= elapsedToGetMultiplier){
-                targetStartTime = SystemClock.elapsedRealtime()
-                handleMultiplier(determineMultiplier())
-            }
-        } else {
-            if (isInTargetRange_DEEP) {
-                isInTargetRange_DEEP = false
-            }
-        }
-        if (roundedKneeAngle in TARGET_MIN_ATG_ANGLE ..TARGET_MAX_ATG_ANGLE){
-            if (!isInTargetRange_ATG) {
-                // The user just entered the target range
-                targetStartTime = SystemClock.elapsedRealtime() // Record the start time
-                isInTargetRange_ATG = true
-            }
-            if (SystemClock.elapsedRealtime() - targetStartTime >= elapsedToGetMultiplier){
-                targetStartTime = SystemClock.elapsedRealtime()
-                handleMultiplier(determineMultiplier())
-            }
-        } else {
-            if (isInTargetRange_ATG) {
-                isInTargetRange_ATG = false
-            }
+        else{
+            targetStartTime = SystemClock.elapsedRealtime()
         }
     }
 
@@ -479,19 +492,19 @@ class OverlayView(context: Context?, attrs: AttributeSet?) :
         // Calculate angles for both knees and average them
         calculateAnglesSquats()
         // Add the averaged knee angle to the liftAngles list
-        liftAngles.add(Entry(entryCount.toFloat(), roundedKneeAngle / 180f)) // normalize
+        liftAngles.add(Entry(entryCount.toFloat(), currentAngle / 180f)) // normalize
         entryCount += 1
 
-        if (roundedKneeAngle > Angle.FULL_STRETCH.index && !scoreAdded) {
+        if (currentAngle > Angle.FULL_STRETCH.index && !scoreAdded) {
             finishLift()
         }
-        if (roundedKneeAngle < Angle.SQ_SHALLOW.index){
+        if (currentAngle < Angle.SQ_SHALLOW.index){
             scoreAdded = false
         }
-        if (roundedKneeAngle < deepestAngle){
-            deepestAngle = roundedKneeAngle
+        if (currentAngle < deepestAngle){
+            deepestAngle = currentAngle
         }
-        accumulateTimes()
+        accumulateTimeMultiplier()
     }
 
     fun displayFeedback(){
