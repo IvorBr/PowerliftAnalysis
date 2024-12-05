@@ -39,7 +39,6 @@ class AnalyticsBottomSheetFragment : BottomSheetDialogFragment() {
     private var liftType: LiftType = LiftType.Squat
 
     var onDismissCallback: (() -> Unit)? = null
-    private var liftCount = 0f
 
     override fun onDismiss(dialog: DialogInterface) {
         super.onDismiss(dialog)
@@ -67,6 +66,12 @@ class AnalyticsBottomSheetFragment : BottomSheetDialogFragment() {
 
         lineChart = rootView.findViewById(R.id.lineChart)
         setupChart()
+        val lifts = arrayListOf(
+            arrayListOf(Multiplier.DEEP),
+            arrayListOf(Multiplier.SHALLOW),
+            arrayListOf(Multiplier.ASS_TO_GRASS)
+        )
+        processLifts(scoreData)
 
         processLifts(scoreData)
 
@@ -148,7 +153,7 @@ class AnalyticsBottomSheetFragment : BottomSheetDialogFragment() {
                 cardContentLayout.addView(titleTextView)
 
                 for (multiplier in liftData) {
-                    val multiplierTextView = TextView(context).apply {
+                    val multiplierTextView = TextView(context, null, R.style.AppTheme).apply {
                         layoutParams = LinearLayout.LayoutParams(
                             LinearLayout.LayoutParams.MATCH_PARENT,
                             LinearLayout.LayoutParams.WRAP_CONTENT
