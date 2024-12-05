@@ -118,7 +118,7 @@ class AnalyticsBottomSheetFragment : BottomSheetDialogFragment() {
                     text = "Lift $liftNumber"
                     textSize = 18f
                     setTypeface(typeface, Typeface.BOLD) // Make it bold
-                    setTextColor(ContextCompat.getColor(context, android.R.color.black))
+                    setTextColor(ContextCompat.getColor(context, R.attr.themeText))
                 }
 
                 // Add the title and description to the card's content layout
