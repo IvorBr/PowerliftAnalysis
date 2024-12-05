@@ -297,19 +297,18 @@ class OverlayView(context: Context?, attrs: AttributeSet?) :
         roundedKneeAngle = (round(averageKneeAngle * 100) / 100).toFloat()  // Round to 2 decimal places
     }
 
-    private fun handleMultiplier(lift: LiftType){
-        val multiplier = determineMultiplier(lift)
+    private fun handleMultiplier(multiplier: Multiplier){
         multiplierArray.add(multiplier)
 
     }
 
-    private fun finishLift(lift: LiftType){
+    private fun finishLift(){
         scoreAdded = true
-        handleMultiplier(lift)
+        handleMultiplier(determineMultiplier())
         scoreData.add(ArrayList(multiplierArray))
         multiplierArray.clear()
 
-        if (lift != LiftType.Deadlift){
+        if (currentLift != LiftType.Deadlift){
             deepestAngle = 180f
         }
         else{
@@ -332,7 +331,7 @@ class OverlayView(context: Context?, attrs: AttributeSet?) :
         calculateAnglesBenchpress()
 
         if (!scoreAdded && roundedElbowAngle >= 170){
-            finishLift(LiftType.Benchpress)
+            finishLift()
         }
 
         if (deepestAngle < roundedElbowAngle)
@@ -350,7 +349,8 @@ class OverlayView(context: Context?, attrs: AttributeSet?) :
         calculateAnglesDeadlifts()
 
         if (!scoreAdded && finishedLift) {
-            finishLift(LiftType.Deadlift)
+
+            finishLift()
         }
 
         if (direction) {
@@ -368,8 +368,8 @@ class OverlayView(context: Context?, attrs: AttributeSet?) :
     }
 
 
-    private fun determineMultiplier(lift: LiftType): Multiplier {
-        return when (lift) {
+    private fun determineMultiplier(): Multiplier {
+        return when (currentLift) {
             LiftType.Squat -> {
                 when {
                     deepestAngle < 30 -> Multiplier.ASS_TO_GRASS
@@ -408,7 +408,7 @@ class OverlayView(context: Context?, attrs: AttributeSet?) :
 
 
 
-    private fun accumulateTimes(lift: LiftType){
+    private fun accumulateTimes(){
         // Check if the current angle is within the target range
         if (roundedKneeAngle in TARGET_MIN_ANGLE..TARGET_MAX_ANGLE) {
             if (!isInTargetRange) {
@@ -418,7 +418,7 @@ class OverlayView(context: Context?, attrs: AttributeSet?) :
             }
             if (SystemClock.elapsedRealtime() - targetStartTime >= 500){
                 targetStartTime = SystemClock.elapsedRealtime()
-                handleMultiplier(lift)
+                handleMultiplier(determineMultiplier())
             }
         } else {
             if (isInTargetRange) {
@@ -433,7 +433,7 @@ class OverlayView(context: Context?, attrs: AttributeSet?) :
             }
             if (SystemClock.elapsedRealtime() - targetStartTime >= 500){
                 targetStartTime = SystemClock.elapsedRealtime()
-                handleMultiplier(lift)
+                handleMultiplier(determineMultiplier())
             }
         } else {
             if (isInTargetRange_DEEP) {
@@ -448,7 +448,7 @@ class OverlayView(context: Context?, attrs: AttributeSet?) :
             }
             if (SystemClock.elapsedRealtime() - targetStartTime >= 500){
                 targetStartTime = SystemClock.elapsedRealtime()
-                handleMultiplier(lift)
+                handleMultiplier(determineMultiplier())
             }
         } else {
             if (isInTargetRange_ATG) {
@@ -466,7 +466,7 @@ class OverlayView(context: Context?, attrs: AttributeSet?) :
         entryCount += 1
 
         if (roundedKneeAngle > 150 && !scoreAdded) {
-            finishLift(LiftType.Squat)
+            finishLift()
         }
         if (roundedKneeAngle < 120){
             scoreAdded = false
@@ -474,7 +474,7 @@ class OverlayView(context: Context?, attrs: AttributeSet?) :
         if (roundedKneeAngle < deepestAngle){
             deepestAngle = roundedKneeAngle
         }
-        accumulateTimes(LiftType.Squat)
+        accumulateTimes()
     }
 
     fun displayFeedback(){
