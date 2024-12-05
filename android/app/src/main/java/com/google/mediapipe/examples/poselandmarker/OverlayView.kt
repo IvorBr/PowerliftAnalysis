@@ -197,9 +197,6 @@ class OverlayView(context: Context?, attrs: AttributeSet?) :
     private var leftAnkle: Pair<Float, Float> = Pair(0f, 0f)
 
     private var targetStartTime: Long = 0
-    private var timeInTargetRange: Long = 0
-    private var timeInTargetRange_DEEP: Long = 0
-    private var timeInTargetRange_ATG: Long = 0
     private var isInTargetRange: Boolean = false
     private var isInTargetRange_DEEP: Boolean = false
     private var isInTargetRange_ATG: Boolean = false
@@ -297,6 +294,7 @@ class OverlayView(context: Context?, attrs: AttributeSet?) :
     private fun handleMultiplier(lift: LiftType){
         val multiplier = determineMultiplier(lift)
         multiplierArray.add(multiplier)
+
     }
 
     private fun finishLift(lift: LiftType){
@@ -309,7 +307,10 @@ class OverlayView(context: Context?, attrs: AttributeSet?) :
             deepestAngle = 180f
         }
         else{
-            deepestAngle = 90f
+            if (direction)
+                deepestAngle = 90f
+            else
+                deepestAngle = 270f
         }
     }
 
@@ -375,17 +376,25 @@ class OverlayView(context: Context?, attrs: AttributeSet?) :
             LiftType.Benchpress -> {
                 // Example logic for Benchpress (replace with your actual criteria)
                 when {
-                    // Add appropriate conditions here
-                    true -> Multiplier.SOLID // Replace "true" with an actual condition
+                    deepestAngle < 60 -> Multiplier.DEEP
+                    deepestAngle < 90 -> Multiplier.SOLID
                     else -> Multiplier.SHALLOW
                 }
             }
             LiftType.Deadlift -> {
+                if (direction){
                 // Example logic for Deadlift (replace with your actual criteria)
-                when {
-                    // Add appropriate conditions here
-                    true -> Multiplier.EXTRA_DEEP // Replace "true" with an actual condition
-                    else -> Multiplier.SHALLOW
+                    when {
+                        deepestAngle > 180 -> Multiplier.LOCKOUT
+                        else -> Multiplier.FAIL
+
+                    }
+                }
+                else{
+                    when {
+                        deepestAngle < 180 -> Multiplier.LOCKOUT
+                        else -> Multiplier.FAIL
+                    }
                 }
             }
         }
@@ -446,7 +455,6 @@ class OverlayView(context: Context?, attrs: AttributeSet?) :
         if (!isTimerRunning) return
         // Calculate angles for both knees and average them
         calculateAnglesSquats()
-        drawText(canvas, "$timeInTargetRange_ATG, $timeInTargetRange_DEEP, $timeInTargetRange", 50f, 50f, Color.WHITE,50f )
         // Add the averaged knee angle to the liftAngles list
         liftAngles.add(Entry(entryCount.toFloat(), roundedKneeAngle / 180f))
         entryCount += 1
