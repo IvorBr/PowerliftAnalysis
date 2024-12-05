@@ -207,7 +207,7 @@ class CameraFragment : Fragment(), PoseLandmarkerHelper.LandmarkerListener {
             totalScore += liftScore
             fragmentCameraBinding.totalScoreText.text = totalScore.toString()
         }
-        displayText(listOf("+" + liftScore.toString())){}
+        displayText(listOf("+" + liftScore.toString()), fragmentCameraBinding.liftScore){}
     }
 
     @SuppressLint("MissingPermission")
@@ -343,32 +343,32 @@ class CameraFragment : Fragment(), PoseLandmarkerHelper.LandmarkerListener {
         })
     }
 
-    private fun displayText(countdownValues: List<String>, onCountdownFinish: () -> Unit) {
-        val countdownText = fragmentCameraBinding.countdownText
-        countdownText.visibility = View.VISIBLE
 
+
+    private fun displayText(countdownValues: List<String>, textView: TextView = fragmentCameraBinding.countdownText, onCountdownFinish: () -> Unit) {
+        textView.visibility = View.VISIBLE
         fun animateCountdownStep(index: Int) {
             if (index >= countdownValues.size) {
-                countdownText.visibility = View.GONE
+                textView.visibility = View.GONE
                 onCountdownFinish()
                 return
             }
 
             // Set the text for the current step
-            countdownText.text = countdownValues[index]
-            countdownText.scaleX = 1f
-            countdownText.scaleY = 1f
-            countdownText.alpha = 1f
+            textView.text = countdownValues[index]
+            textView.scaleX = 1f
+            textView.scaleY = 1f
+            textView.alpha = 1f
 
             // Scale up and fade in
-            countdownText.animate()
+            textView.animate()
                 .scaleX(1.5f)
                 .scaleY(1.5f)
                 .alpha(1f)
                 .setDuration(500)
                 .withEndAction {
                     // Fade out after scale-up
-                    countdownText.animate()
+                    textView.animate()
                         .alpha(0f)
                         .setDuration(500)
                         .withEndAction {
