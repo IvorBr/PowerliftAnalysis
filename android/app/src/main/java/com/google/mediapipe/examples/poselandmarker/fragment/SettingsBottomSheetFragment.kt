@@ -1,6 +1,7 @@
 package com.google.mediapipe.examples.poselandmarker.fragment
 
 import android.content.Context
+import android.content.res.Configuration
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -47,9 +48,20 @@ class SettingsBottomSheetFragment : BottomSheetDialogFragment() {
                 invalidate()
             }
         }
+
         // Theme Mode Slider
         // Only update the theme when the user toggles the switch
-        binding.themeModeSwitch.isChecked = (AppCompatDelegate.getDefaultNightMode() == AppCompatDelegate.MODE_NIGHT_YES)
+        val isDarkMode = when (AppCompatDelegate.getDefaultNightMode()) {
+            AppCompatDelegate.MODE_NIGHT_YES -> true
+            AppCompatDelegate.MODE_NIGHT_NO -> false
+            else -> {
+                // If mode is FOLLOW_SYSTEM or UNSPECIFIED, infer from the current UI mode
+                val uiMode = resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK
+                uiMode == Configuration.UI_MODE_NIGHT_YES
+            }
+        }
+
+        binding.themeModeSwitch.isChecked = isDarkMode
 
         binding.themeModeSwitch.setOnCheckedChangeListener { _, isChecked ->
             updateTheme(isChecked)
