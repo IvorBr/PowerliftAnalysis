@@ -28,6 +28,14 @@
         android:text="Show Wireframe Skeleton"
         android:checked="false" />
 
+    <com.google.android.material.switchmaterial.SwitchMaterial
+        android:id="@+id/themeModeSwitch"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Dark mode"
+        android:contentDescription="Theme Mode Slider"
+        android:checked="false"/>
+
     <!-- Timer Slider -->
     <TextView
         android:id="@+id/timer_label"

@@ -61,7 +61,7 @@ class AnalyticsBottomSheetFragment : BottomSheetDialogFragment() {
             arrayListOf(Multiplier.SHALLOW),
             arrayListOf(Multiplier.ASS_TO_GRASS)
         )
-        processLifts(scoreData)
+        processLifts(lifts)
         setupLifts()
 
         return rootView
@@ -118,7 +118,7 @@ class AnalyticsBottomSheetFragment : BottomSheetDialogFragment() {
                     text = "Lift $liftNumber"
                     textSize = 18f
                     setTypeface(typeface, Typeface.BOLD) // Make it bold
-                    setTextColor(android.R.attr.textColorPrimary)
+                    setTextColor(R.style.AppTheme)
                 }
 
                 // Add the title and description to the card's content layout
@@ -136,7 +136,7 @@ class AnalyticsBottomSheetFragment : BottomSheetDialogFragment() {
                         )
                         text = multiplier.name.replace("_", " ") // Format enum names
                         textSize = 16f
-                        setTextColor(android.R.attr.textColorPrimary)
+                        setTextColor(R.style.AppTheme)
                     }
                     cardContentLayout.addView(multiplierTextView) // Add each multiplier TextView to the card
                 }

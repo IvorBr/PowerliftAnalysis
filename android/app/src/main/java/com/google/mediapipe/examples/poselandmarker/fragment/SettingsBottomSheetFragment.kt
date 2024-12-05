@@ -5,6 +5,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.appcompat.app.AppCompatDelegate
 import androidx.fragment.app.Fragment
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.google.mediapipe.examples.poselandmarker.OverlayView
@@ -28,13 +29,8 @@ class SettingsBottomSheetFragment : BottomSheetDialogFragment() {
         super.onViewCreated(view, savedInstanceState)
 
         val sharedPreferences = requireContext().getSharedPreferences("AppSettings", Context.MODE_PRIVATE)
-        val skeletonBool = sharedPreferences.getBoolean("wireframe_skeleton", false)
-
-        binding.wireframeSwitch.isChecked = skeletonBool
 
         binding.wireframeSwitch.setOnCheckedChangeListener { _, isChecked ->
-            sharedPreferences.edit().putBoolean("wireframe_skeleton", isChecked).apply()
-
             (requireActivity().findViewById<OverlayView>(R.id.overlay))?.apply {
                 isSkeletonEnabled = isChecked
                 invalidate()
@@ -51,12 +47,30 @@ class SettingsBottomSheetFragment : BottomSheetDialogFragment() {
                 invalidate()
             }
         }
+        // Theme Mode Slider
+        // Only update the theme when the user toggles the switch
+        binding.themeModeSwitch.isChecked = (AppCompatDelegate.getDefaultNightMode() == AppCompatDelegate.MODE_NIGHT_YES)
+
+        binding.themeModeSwitch.setOnCheckedChangeListener { _, isChecked ->
+            updateTheme(isChecked)
+        }
+    }
+
+    private fun updateTheme(isDarkMode: Boolean) {
+        val currentMode = AppCompatDelegate.getDefaultNightMode()
+        val newMode = if (isDarkMode) AppCompatDelegate.MODE_NIGHT_YES else AppCompatDelegate.MODE_NIGHT_NO
+
+        // Update only if the mode is different to avoid unnecessary theme changes
+        if (currentMode != newMode) {
+            AppCompatDelegate.setDefaultNightMode(newMode)
+        }
     }
 
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
     }
+
     companion object {
         const val TAG = "SettingsBottomSheet"
     }
