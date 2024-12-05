@@ -5,5 +5,6 @@
         <attr name="strokeWidth" format="dimension" />
     </declare-styleable>
     <attr name="cardStyle" format="reference"/>
+    <attr name="themeText" format="reference"/>
 
 </resources>
