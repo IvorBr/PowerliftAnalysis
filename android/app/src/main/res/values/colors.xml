@@ -30,6 +30,7 @@
 
     <!-- Background Colors -->
     <color name="toolbar_background">#FAFAFA</color> <!-- Light Gray -->
+    <color name="mp_color_soft_red">#FF4538</color> <!-- Soft Red -->
 
     <!-- Icon States -->
     <color name="icActive">#FF6F00</color> <!-- Active Icon in Primary Orange -->
