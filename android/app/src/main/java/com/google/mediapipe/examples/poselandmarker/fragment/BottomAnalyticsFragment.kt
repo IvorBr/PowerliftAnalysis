@@ -62,113 +62,16 @@ class AnalyticsBottomSheetFragment : BottomSheetDialogFragment() {
             arrayListOf(Multiplier.SHALLOW),
             arrayListOf(Multiplier.ASS_TO_GRASS)
         )
-
         processLifts(lifts)
         setupLifts()
 
         return rootView
     }
 
-    private fun measureLifts(){
-        if (dataPoints.isNullOrEmpty()) return
-        val nearestRoundedNumber = 3
-        var previousAngle = 0
-        var currentAngle = 0
-
-        var wrongLift = 0
-        var successfulLift = 0
-
-        for (i in 1 until dataPoints!!.size) {
-            val entry = dataPoints!![i]
-            val currentEstimatedAngle = entry.y
-            currentAngle = nearestRoundedNumber *
-                    Math.round(currentEstimatedAngle / nearestRoundedNumber)
-            if (liftType == LiftType.Squat){
-
-            }
-            else if (liftType == LiftType.Deadlift){
-
-            }
-            else if (liftType == LiftType.Benchpress){
-
-            }
-            if (previousAngle != currentAngle){
-                previousAngle = currentAngle
-            }
-        }
-    }
-
-    private fun measureSquats() {
-        // Thresholds for defining a "successful" lift (example values, adjust as needed)
-
-        val nearestRoundedNumber = 5  // Rounding interval for angle
-
-        var previousAngle = 0
-
-        var reachedDepth = false
-        var goingDown = true
-
-        if (dataPoints.isNullOrEmpty()) return
-
-        var currentAngle = 0
-        var successfulLifts = 0
-        var wrongLift = 0
-        var wrongfulLift = false
-
-        for (i in 1 until dataPoints!!.size) {
-            val entry = dataPoints!![i]
-            val currentEstimatedAngle = entry.y*180
-
-            // Round currentEstimatedAngle to the nearest multiple of nearestRoundedNumber
-            currentAngle = nearestRoundedNumber *
-                    Math.round(currentEstimatedAngle / nearestRoundedNumber)
-
-
-            //successful squat Logic///////////////////////////
-            if (previousAngle > currentAngle && goingDown && !reachedDepth && currentAngle <= 60) {
-                //going up
-                reachedDepth = true
-                goingDown = false
-            }
-            if(reachedDepth && currentAngle >= 150 && !goingDown){
-                successfulLifts += 1
-                reachedDepth = false
-                goingDown = true
-            }
-            //////////////////////////////////////////////////
-
-            //unsuccessful squat logic/////////////////////////
-            if (previousAngle < currentAngle && goingDown && !reachedDepth && currentAngle < 150){
-                // Wrong lift
-                wrongLift += 1
-                goingDown = false
-                wrongfulLift = true
-            }
-
-            if (wrongfulLift && currentAngle >= 150){
-                goingDown = true
-                wrongfulLift = false
-            }
-
-
-            ///////////////////////////////////////////////////
-            if (previousAngle != currentAngle){
-                previousAngle = currentAngle
-            }
-
-        }
-
-        // Update the successful lifts count
-        liftCount = successfulLifts.toFloat() / (successfulLifts.toFloat()+wrongLift.toFloat())
-    }
 
     private fun setupLifts() {
         val liftCountTextView: TextView = rootView.findViewById(R.id.liftCountTextView)
-
-        measureSquats()
         // Update the TextViews with the values
-
-        liftCountTextView.text = "Lift Count: $liftCount" // Use the variable here
     }
 
     // Example method to calculate total lift time

@@ -141,11 +141,11 @@ class CameraFragment : Fragment(), PoseLandmarkerHelper.LandmarkerListener {
 
     private fun showAnalyticsModal() {
         val modalBottomSheet = AnalyticsBottomSheetFragment()
-        modalBottomSheet.setDataPoints(fragmentCameraBinding.overlay.squatAngles)
+        modalBottomSheet.setDataPoints(fragmentCameraBinding.overlay.liftAngles)
         modalBottomSheet.setScoreData(fragmentCameraBinding.overlay.scoreData)
         modalBottomSheet.setLiftType(fragmentCameraBinding.overlay.currentLift)
         modalBottomSheet.onDismissCallback = {
-            fragmentCameraBinding.overlay.squatAngles.clear()
+            fragmentCameraBinding.overlay.liftAngles.clear()
             val bottomNavigationView = fragmentCameraBinding.bottomNavigation
 
             fragmentCameraBinding.settingsFab.animate()

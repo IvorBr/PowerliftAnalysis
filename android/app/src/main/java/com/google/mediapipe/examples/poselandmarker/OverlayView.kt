@@ -157,29 +157,25 @@ class OverlayView(context: Context?, attrs: AttributeSet?) :
     private var results: PoseLandmarkerResult? = null
     private var pointPaint = Paint()
     private var linePaint = Paint()
-
     private var scaleFactor: Float = 1f
     private var imageWidth: Int = 1
     private var imageHeight: Int = 1
 
-
-    private var finishedLift: Boolean = false
-
     var isSkeletonEnabled: Boolean = true
-
     var currentLift: LiftType = LiftType.Squat
+    private var finishedLift: Boolean = false
 
     private var timer: CountDownTimer? = null
     var isTimerRunning = false
 
-    val squatAngles = ArrayList<Entry>()
-
+    val liftAngles = ArrayList<Entry>()
     var weight = 10
 
     private var scoreAdded = false
     private var totalScore = 0
     private var deepestAngle = 180.0f
     val scoreData = ArrayList<ArrayList<Multiplier>>()
+    val multiplierArray = ArrayList<Multiplier>()
 
     var roundedKneeAngle: Float = 0f
     private var roundedButtcheekAngle: Float = 0f
@@ -200,6 +196,23 @@ class OverlayView(context: Context?, attrs: AttributeSet?) :
     private var leftKnee: Pair<Float, Float> = Pair(0f, 0f)
     private var rightAnkle: Pair<Float, Float> = Pair(0f, 0f)
     private var leftAnkle: Pair<Float, Float> = Pair(0f, 0f)
+
+    private var timeInLift: Long = 0
+    private var targetStartTime: Long = 0
+    private var timeInTargetRange: Long = 0
+    private var timeInTargetRange_DEEP: Long = 0
+    private var timeInTargetRange_ATG: Long = 0
+    private var isInTargetRange: Boolean = false
+    private var isInTargetRange_DEEP: Boolean = false
+    private var isInTargetRange_ATG: Boolean = false
+    private val TARGET_MIN_ANGLE = 45f
+    private val TARGET_MAX_ANGLE = 70f
+    private val TARGET_MIN_DEEP_ANGLE = 30f
+    private val TARGET_MAX_DEEP_ANGLE = 45f
+    private val TARGET_MIN_ATG_ANGLE = 0f
+    private val TARGET_MAX_ATG_ANGLE = 30f
+
+
 
     init {
         initPaints()
@@ -238,52 +251,6 @@ class OverlayView(context: Context?, attrs: AttributeSet?) :
     var standardTime: Int = 10
     var entryCount = 0
 
-    private fun drawRedCircle(canvas: Canvas, landmarkerID: Int) {
-        results?.let { poseLandmarkerResult ->
-            // Ensure the landmark ID is within a valid range
-            if (landmarkerID < 0 || landmarkerID >= poseLandmarkerResult.landmarks().get(0).size) {
-                return // Exit if the landmark ID is invalid
-            }
-
-            // Get the landmark position
-            val landmark = poseLandmarkerResult.landmarks().get(0).get(landmarkerID)
-            val x = landmark.x() * imageWidth * scaleFactor
-            val y = landmark.y() * imageHeight * scaleFactor
-
-            // Draw a solid inner circle
-            canvas.drawCircle(
-                x, y,
-                30f, // Inner circle radius
-                Paint().apply {
-                    color = Color.RED
-                    alpha = 255 // Fully opaque for the center
-                    style = Paint.Style.FILL
-                }
-            )
-
-            // Draw a semi-transparent outer circle for the "glow" effect
-            canvas.drawCircle(
-                x, y,
-                60f, // Outer circle radius
-                Paint().apply {
-                    color = Color.RED
-                    alpha = 100 // Semi-transparent edges
-                    style = Paint.Style.FILL
-                }
-            )
-
-            // Draw an even larger and more transparent outer circle for the faded edges
-            canvas.drawCircle(
-                x, y,
-                90f, // Largest circle radius
-                Paint().apply {
-                    color = Color.RED
-                    alpha = 50 // Faded edges
-                    style = Paint.Style.FILL
-                }
-            )
-        }
-    }
 
     private fun drawText(canvas: Canvas, text: String, x: Float, y: Float, color: Int, textSize: Float) {
         val paint = Paint().apply {
@@ -302,8 +269,6 @@ class OverlayView(context: Context?, attrs: AttributeSet?) :
             direction = determineDirection(rightShoulder, rightHip, rightKnee)
             determinedDirection = true
         }
-        //val rightKneeAngle = calculateAngle(rightHip, rightKnee, rightAnkle)
-        //val leftKneeAngle = calculateAngle(leftHip, leftKnee, leftAnkle)
 
         val leftButtcheekData = calculateAngleAndLockout(leftShoulder, leftHip, leftKnee, direction)
         val rightButtcheekData = calculateAngleAndLockout(rightShoulder, rightHip, rightKnee, direction)
@@ -314,8 +279,6 @@ class OverlayView(context: Context?, attrs: AttributeSet?) :
         if (!scoreAdded)
             finishedLift = leftButtcheekData.second && rightButtcheekData.second
 
-        // Round to 2 decimal places for consistency
-        //roundedKneeAngle = (round(averageKneeAngle * 100) / 100).toFloat()  // Round to 2 decimal places
         roundedButtcheekAngle = (round(averageButtcheekAngle*100)/100)
 
 
@@ -333,14 +296,13 @@ class OverlayView(context: Context?, attrs: AttributeSet?) :
         roundedKneeAngle = (round(averageKneeAngle * 100) / 100).toFloat()  // Round to 2 decimal places
     }
 
-    private fun addPoints(lift: LiftType){
+    private fun addPoints(lift: LiftType, multiplierArray: ArrayList<Multiplier>){
         val multiplier = determineMultiplier(lift)
-        val newMultiplierArray = ArrayList<Multiplier>() // Example single-row array
-        newMultiplierArray.add(multiplier)
-        scoreData.add(newMultiplierArray)
-        val score = (100 * multiplier.score).toInt()
-        totalScore += score
-        deepestAngle = 180f
+        multiplierArray.add(multiplier)
+        if (lift != LiftType.Deadlift)
+            deepestAngle = 180f
+        else
+            deepestAngle = 90f
     }
     private fun calculateAnglesBenchpress(){
         val rightElbowAngle = calculateAngle(rightShoulder, rightElbow, rightHand)
@@ -350,13 +312,15 @@ class OverlayView(context: Context?, attrs: AttributeSet?) :
     }
 
     private fun benchpress(canvas: Canvas){
-        if (isTimerRunning) return
+        if (!isTimerRunning) return
         calculateAnglesBenchpress()
 
         if (!scoreAdded && roundedElbowAngle >= 170){
             scoreAdded = true
             deepestAngle = 180f
-            addPoints(LiftType.Benchpress)
+            addPoints(LiftType.Benchpress, multiplierArray)
+            scoreData.add(multiplierArray)
+            multiplierArray.clear()
         }
 
         if (deepestAngle < roundedElbowAngle)
@@ -374,7 +338,7 @@ class OverlayView(context: Context?, attrs: AttributeSet?) :
         calculateAnglesDeadlifts()
 
         if (!scoreAdded && finishedLift) {
-            addPoints(LiftType.Deadlift)
+            addPoints(LiftType.Deadlift, multiplierArray)
             scoreAdded = true
         }
 
@@ -424,28 +388,85 @@ class OverlayView(context: Context?, attrs: AttributeSet?) :
     }
 
 
+
+    private fun accumulateTimes(){
+        // Check if the current angle is within the target range
+        if (roundedKneeAngle in TARGET_MIN_ANGLE..TARGET_MAX_ANGLE) {
+            if (!isInTargetRange) {
+                // The user just entered the target range
+                targetStartTime = SystemClock.elapsedRealtime() // Record the start time
+                isInTargetRange = true
+            }
+            if (SystemClock.elapsedRealtime() - targetStartTime >= 500){
+                targetStartTime = SystemClock.elapsedRealtime()
+                multiplierArray.add(Multiplier.SOLID)
+            }
+        } else {
+            if (isInTargetRange) {
+                isInTargetRange = false
+            }
+        }
+        if (roundedKneeAngle in TARGET_MIN_DEEP_ANGLE ..TARGET_MAX_DEEP_ANGLE){
+            if (!isInTargetRange_DEEP) {
+                // The user just entered the target range
+                targetStartTime = SystemClock.elapsedRealtime() // Record the start time
+                isInTargetRange_DEEP = true
+            }
+            if (SystemClock.elapsedRealtime() - targetStartTime >= 500){
+                targetStartTime = SystemClock.elapsedRealtime()
+                multiplierArray.add(Multiplier.DEEP)
+                //addPoints()
+            }
+        } else {
+            if (isInTargetRange_DEEP) {
+                isInTargetRange_DEEP = false
+            }
+        }
+        if (roundedKneeAngle in TARGET_MIN_ATG_ANGLE ..TARGET_MAX_ATG_ANGLE){
+            if (!isInTargetRange_ATG) {
+                // The user just entered the target range
+                targetStartTime = SystemClock.elapsedRealtime() // Record the start time
+                isInTargetRange_ATG = true
+            }
+            if (SystemClock.elapsedRealtime() - targetStartTime >= 500){
+                targetStartTime = SystemClock.elapsedRealtime()
+                multiplierArray.add(Multiplier.ASS_TO_GRASS)
+                //addPoints()
+            }
+        } else {
+            if (isInTargetRange_ATG) {
+                isInTargetRange_ATG = false
+            }
+        }
+    }
+
     private fun squats(canvas: Canvas) {
-        if (isTimerRunning) return
+        if (!isTimerRunning) return
         // Calculate angles for both knees and average them
         calculateAnglesSquats()
-
-        // Add the averaged knee angle to the squatAngles list
-        squatAngles.add(Entry(entryCount.toFloat(), roundedKneeAngle / 180f))
+        drawText(canvas, "$timeInTargetRange_ATG, $timeInTargetRange_DEEP, $timeInTargetRange", 50f, 50f, Color.WHITE,50f )
+        // Add the averaged knee angle to the liftAngles list
+        liftAngles.add(Entry(entryCount.toFloat(), roundedKneeAngle / 180f))
         entryCount += 1
 
         if (roundedKneeAngle > 150 && !scoreAdded) {
             scoreAdded = true
-            addPoints(LiftType.Squat)
+            addPoints(LiftType.Squat, multiplierArray)
+            scoreData.add(multiplierArray)
+            multiplierArray.clear()
         }
-
         if (roundedKneeAngle < 120){
             scoreAdded = false
         }
         if (roundedKneeAngle < deepestAngle){
             deepestAngle = roundedKneeAngle
         }
+        accumulateTimes()
     }
 
+    fun displayFeedback(){
+
+    }
 
     private fun stopTimer() {
         timer?.cancel()
