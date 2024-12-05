@@ -216,7 +216,7 @@ class CameraFragment : Fragment(), PoseLandmarkerHelper.LandmarkerListener {
         }
 
         displayText(listOf("+" + liftScore.toString()), fragmentCameraBinding.liftScore){}
-        displayText(listOf(multiplierArray.last().name), fragmentCameraBinding.liftScore){}
+        displayText(listOf(multiplierArray.last().name.replace("_", " ")), fragmentCameraBinding.liftModifier){}
     }
 
     @SuppressLint("MissingPermission")
