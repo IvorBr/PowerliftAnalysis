@@ -136,7 +136,7 @@ class AnalyticsBottomSheetFragment : BottomSheetDialogFragment() {
                         )
                         text = multiplier.name.replace("_", " ") // Format enum names
                         textSize = 16f
-                        setTextColor(ContextCompat.getColor(context, android.R.color.black))
+                        setTextColor(ContextCompat.getColor(context, R.attr.themeText))
                     }
                     cardContentLayout.addView(multiplierTextView) // Add each multiplier TextView to the card
                 }

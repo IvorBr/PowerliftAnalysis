@@ -17,6 +17,16 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 
+    <com.google.mediapipe.examples.poselandmarker.StrokeTextView
+        android:id="@+id/total_score_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="top|center"
+        android:visibility="visible"
+        android:textSize="32sp"
+        style="@style/StrokeTextStyle" />
+
+
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/settings_fab"
         android:layout_width="wrap_content"
@@ -33,12 +43,8 @@
         android:layout_height="wrap_content"
         android:layout_gravity="center"
         android:visibility="invisible"
-        android:textColor="@color/mp_color_primary"
-        android:textSize="64sp"
-        android:textStyle="bold"
-        android:fontFamily="sans-serif-condensed"
-        app:strokeColor="#FFFFFF"
-        app:strokeWidth="4dp" />
+        style="@style/StrokeTextStyle" />
+
 
     <LinearLayout
         android:id="@+id/weight_layout"
@@ -60,7 +66,7 @@
             android:layout_gravity="center_vertical"
             android:text="kg"
             android:textSize="18sp"
-            android:textColor="@color/black" />
+            android:textColor="?android:attr/textColorPrimary" />
     </LinearLayout>
 
     <Button

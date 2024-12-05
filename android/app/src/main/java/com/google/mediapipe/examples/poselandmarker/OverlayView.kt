@@ -225,12 +225,18 @@ class OverlayView(context: Context?, attrs: AttributeSet?) :
         stopTimer()
     }
 
-    fun calculateScore(): Int{
+    private fun calculateLiftScore(multipliers : ArrayList<Multiplier>): Int{
+        var liftScore = 0
+        for (multiplier in multipliers){
+            liftScore += (weight*multiplier.score).toInt()
+        }
+        return liftScore
+    }
+
+    fun calculateTotalScore(liftScoreData : ArrayList<ArrayList<Multiplier>>): Int{
         var totalScore = 0
-        for (multipliers in scoreData) {
-            for (multiplier in multipliers){
-                totalScore += (weight*multiplier.score).toInt()
-            }
+        for (liftData in liftScoreData) {
+            totalScore += calculateLiftScore(liftData)
         }
         return totalScore
     }

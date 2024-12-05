@@ -372,8 +372,6 @@ class CameraFragment : Fragment(), PoseLandmarkerHelper.LandmarkerListener {
         animateCountdownStep(0)
     }
 
-
-
     // Initialize CameraX, and prepare to bind the camera use cases
     private fun setUpCamera() {
         val cameraProviderFuture =
