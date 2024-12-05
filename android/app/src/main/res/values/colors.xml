@@ -45,6 +45,6 @@
     <color name="text_primary_light">#FFFFFF</color> <!-- White Text -->
     <color name="text_primary_dark">#212121</color> <!-- Black Text -->
     <color name="card_color">#CAC4D0</color> <!-- Dark Gray -->
-
+    <color name="black">#000000</color> <!-- Pure Black -->
 
 </resources>

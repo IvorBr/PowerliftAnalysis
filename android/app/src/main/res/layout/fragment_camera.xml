@@ -1,4 +1,5 @@
-<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.coordinatorlayout.widget.CoordinatorLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/camera_container"
@@ -26,7 +27,6 @@
         android:layout_marginEnd="16dp"
         style="@style/Widget.Material3.ExtendedFloatingActionButton.Icon.Surface" />
 
-
     <com.google.mediapipe.examples.poselandmarker.StrokeTextView
         android:id="@+id/countdown_text"
         android:layout_width="wrap_content"
@@ -40,6 +40,28 @@
         app:strokeColor="#FFFFFF"
         app:strokeWidth="4dp" />
 
+    <LinearLayout
+        android:id="@+id/weight_layout"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal|bottom"
+        android:layout_marginBottom="160dp"
+        android:orientation="horizontal">
+
+        <NumberPicker
+            android:id="@+id/weightPicker"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+
+        <TextView
+            android:id="@+id/kgLabel"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
+            android:text="kg"
+            android:textSize="18sp"
+            android:textColor="@color/black" />
+    </LinearLayout>
 
     <Button
         android:id="@+id/start_button"

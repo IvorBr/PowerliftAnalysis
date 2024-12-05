@@ -29,6 +29,7 @@
         <!-- Status bar color. -->
         <item name="android:statusBarColor">?attr/colorPrimary</item>
         <!-- Customize your theme here. -->
+        <item name="cardStyle">@style/Widget.Material3.CardView.Elevated</item>
     </style>
 
     <style name="BottomSheetSpinnerItemStyle" parent="Widget.AppCompat.Light.DropDownItem.Spinner">
@@ -37,8 +38,5 @@
 
     <style name="AppThemeProgressStyle">
         <item name="colorAccent">@color/mp_color_primary_variant</item>
-    </style>
-
-    <style name="MyCustomCardStyle" parent="Widget.Material3.CardView.Elevated">
     </style>
 </resources>

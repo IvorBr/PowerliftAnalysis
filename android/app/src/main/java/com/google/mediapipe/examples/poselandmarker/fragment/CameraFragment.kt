@@ -18,6 +18,7 @@ package com.google.mediapipe.examples.poselandmarker.fragment
 import android.animation.Animator
 import android.animation.AnimatorListenerAdapter
 import android.animation.ObjectAnimator
+import android.animation.ValueAnimator
 import android.annotation.SuppressLint
 import android.content.res.Configuration
 import android.os.Bundle
@@ -25,10 +26,14 @@ import android.os.Handler
 import android.os.Looper
 import android.os.Parcelable
 import android.util.Log
+import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.animation.LinearInterpolator
 import android.widget.AdapterView
+import android.widget.NumberPicker
+import android.widget.TextView
 import android.widget.Toast
 import androidx.camera.core.Preview
 import androidx.camera.core.CameraSelector
@@ -37,12 +42,17 @@ import androidx.camera.core.ImageProxy
 import androidx.camera.core.Camera
 import androidx.camera.core.AspectRatio
 import androidx.camera.lifecycle.ProcessCameraProvider
+import androidx.constraintlayout.widget.ConstraintSet
+import androidx.coordinatorlayout.widget.CoordinatorLayout
 import androidx.core.animation.doOnEnd
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.navigation.Navigation
 import androidx.navigation.fragment.findNavController
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.LinearSnapHelper
+import androidx.recyclerview.widget.RecyclerView
 import com.github.mikephil.charting.data.Entry
 import com.google.android.material.animation.AnimationUtils
 import com.google.android.material.floatingactionbutton.FloatingActionButton
@@ -59,6 +69,7 @@ import java.util.Locale
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
+import kotlin.math.abs
 
 class CameraFragment : Fragment(), PoseLandmarkerHelper.LandmarkerListener {
 
@@ -139,24 +150,45 @@ class CameraFragment : Fragment(), PoseLandmarkerHelper.LandmarkerListener {
         return fragmentCameraBinding.root
     }
 
+    private fun setupNumberPicker() {
+        val weightPicker: NumberPicker = fragmentCameraBinding.weightPicker
+
+        weightPicker.minValue = 0
+        weightPicker.maxValue = 400 / 5 // Steps of 5 (0 to 400)
+        weightPicker.value = 10 / 5 // Default value (10)
+
+        weightPicker.setFormatter { value -> (value * 5).toString() }
+    }
+
+    private fun fadeViews(vararg views: View, duration: Long = 300, fadeIn: Boolean = false) {
+        views.forEach { view ->
+            view.animate()
+                .alpha(if (fadeIn) 1f else 0f)
+                .setDuration(duration)
+                .withStartAction {
+                    if (fadeIn) view.visibility = View.VISIBLE // Ensure visibility before fading in
+                }
+                .withEndAction {
+                    if (!fadeIn) view.visibility = View.GONE // Hide after fading out
+                }
+                .start()
+        }
+    }
+
     private fun showAnalyticsModal() {
         val modalBottomSheet = AnalyticsBottomSheetFragment()
         modalBottomSheet.setDataPoints(fragmentCameraBinding.overlay.liftAngles)
         modalBottomSheet.setScoreData(fragmentCameraBinding.overlay.scoreData)
         modalBottomSheet.setLiftType(fragmentCameraBinding.overlay.currentLift)
+        modalBottomSheet.weight = fragmentCameraBinding.weightPicker.value
+
         modalBottomSheet.onDismissCallback = {
             fragmentCameraBinding.overlay.liftAngles.clear()
             val bottomNavigationView = fragmentCameraBinding.bottomNavigation
 
-            fragmentCameraBinding.settingsFab.animate()
-                .alpha(1f)
-                .setDuration(300)
-                .start()
-
-            fragmentCameraBinding.startButton.animate()
-                .alpha(1f)
-                .setDuration(300)
-                .start()
+            fadeViews(fragmentCameraBinding.settingsFab,
+                fragmentCameraBinding.startButton,
+                duration = 300, fadeIn = true)
 
             bottomNavigationView.visibility = View.VISIBLE
             fragmentCameraBinding.bottomNavigation.animate()
@@ -171,10 +203,9 @@ class CameraFragment : Fragment(), PoseLandmarkerHelper.LandmarkerListener {
     @SuppressLint("MissingPermission")
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
         // Initialize our background executor
         backgroundExecutor = Executors.newSingleThreadExecutor()
-
+        setupNumberPicker()
         // Wait for the views to be properly laid out
         fragmentCameraBinding.viewFinder.post {
             // Set up the camera and its use cases
@@ -199,15 +230,10 @@ class CameraFragment : Fragment(), PoseLandmarkerHelper.LandmarkerListener {
                 startDepthIndicator()
             }
 
-            settingsFab.animate()
-                .alpha(0f)
-                .setDuration(300)
-                .start()
-
-            startButton.animate()
-                .alpha(0f)
-                .setDuration(300)
-                .start()
+            fadeViews(fragmentCameraBinding.settingsFab,
+                fragmentCameraBinding.startButton,
+                fragmentCameraBinding.weightLayout,
+                duration = 300, fadeIn = false)
 
             bottomNavigationView.animate()
                 .translationY(bottomNavigationView.height.toFloat())
@@ -260,7 +286,6 @@ class CameraFragment : Fragment(), PoseLandmarkerHelper.LandmarkerListener {
         val updateInterval = 50L
         verticalProgress.max = 180
 
-        // ALS TIMER NIET MEER RUNT HAAL WEG EN ANDERE DINGEN NOG TOEVOEGEN
         verticalProgress.show()
         handler.post(object : Runnable {
             override fun run() {
@@ -299,6 +324,7 @@ class CameraFragment : Fragment(), PoseLandmarkerHelper.LandmarkerListener {
                     Handler(Looper.getMainLooper()).postDelayed({
                         showAnalyticsModal()
                         circularIndicator.setProgressCompat(0, false)
+                        fragmentCameraBinding.verticalProgress.hide()
                     }, 500)
                 }
             }
@@ -307,41 +333,46 @@ class CameraFragment : Fragment(), PoseLandmarkerHelper.LandmarkerListener {
 
     private fun startCountdown(countdownValues: List<String>, onCountdownFinish: () -> Unit) {
         val countdownText = fragmentCameraBinding.countdownText
-        val interval = 1000L // Total time per step in milliseconds
-
         countdownText.visibility = View.VISIBLE
 
-        for (i in countdownValues.indices) {
-            val delay = i * interval
+        fun animateCountdownStep(index: Int) {
+            if (index >= countdownValues.size) {
+                countdownText.visibility = View.GONE
+                onCountdownFinish()
+                return
+            }
 
-            Handler(Looper.getMainLooper()).postDelayed({
-                countdownText.text = countdownValues[i]
+            // Set the text for the current step
+            countdownText.text = countdownValues[index]
+            countdownText.scaleX = 1f
+            countdownText.scaleY = 1f
+            countdownText.alpha = 1f
 
-                // Scale up and fade in
-                countdownText.scaleX = 1f
-                countdownText.scaleY = 1f
-                countdownText.alpha = 1f
-
-                countdownText.animate()
-                    .scaleX(1.5f)
-                    .scaleY(1.5f)
-                    .alpha(1f)
-                    .setDuration(500)
-                    .withEndAction {
-                        countdownText.animate()
-                            .alpha(0f)
-                            .setDuration(500)
-                            .withEndAction {
-                                if (i == countdownValues.size - 1) {
-                                    onCountdownFinish()
-                                }
-                            }
-                            .start()
-                    }
-                    .start()
-            }, delay)
+            // Scale up and fade in
+            countdownText.animate()
+                .scaleX(1.5f)
+                .scaleY(1.5f)
+                .alpha(1f)
+                .setDuration(500)
+                .withEndAction {
+                    // Fade out after scale-up
+                    countdownText.animate()
+                        .alpha(0f)
+                        .setDuration(500)
+                        .withEndAction {
+                            // Move to the next step
+                            animateCountdownStep(index + 1)
+                        }
+                        .start()
+                }
+                .start()
         }
+
+        // Start the recursive animation
+        animateCountdownStep(0)
     }
+
+
 
     // Initialize CameraX, and prepare to bind the camera use cases
     private fun setUpCamera() {

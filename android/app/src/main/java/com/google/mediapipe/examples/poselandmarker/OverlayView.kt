@@ -248,7 +248,7 @@ class OverlayView(context: Context?, attrs: AttributeSet?) :
         pointPaint.style = Paint.Style.FILL
     }
 
-    var standardTime: Int = 10
+    var standardTime: Int = 1
     var entryCount = 0
 
 
