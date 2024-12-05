@@ -198,7 +198,6 @@ class OverlayView(context: Context?, attrs: AttributeSet?) :
     val scoreData = ArrayList<ArrayList<Multiplier>>()
     val multiplierArray = ArrayList<Multiplier>()
 
-    private var cleared = false
 
     var currentAngle: Float = 0f
     private var determinedDirection: Boolean = false
@@ -410,22 +409,20 @@ class OverlayView(context: Context?, attrs: AttributeSet?) :
     // Function to check Squat Range
     private fun checkSquatRange(): Boolean {
         val squatRange = when {
-            previousAngle in Angle.FULL_STRETCH.index..Angle.FULL_STRETCH.index -> "FULL_STRETCH"
+            previousAngle in Angle.FULL_STRETCH.index..180f -> "FULL_STRETCH"
             previousAngle in 0f..Angle.SQ_ATG.index -> "SQ_ATG"
             previousAngle in Angle.SQ_EXRA_DEEP.index..Angle.SQ_EXRA_DEEP.index -> "SQ_EXRA_DEEP"
             previousAngle in Angle.SQ_DEEP.index..Angle.SQ_SOLID.index -> "SQ_DEEP"
             previousAngle in Angle.SQ_SOLID.index..Angle.SQ_SHALLOW.index -> "SQ_SOLID"
-            previousAngle in Angle.SQ_SHALLOW.index..Angle.SQ_SHALLOW.index -> "SQ_SHALLOW"
             else -> "OUTSIDE"
         }
 
         val currentSquatRange = when {
-            currentAngle in Angle.FULL_STRETCH.index..Angle.FULL_STRETCH.index -> "FULL_STRETCH"
+            currentAngle in Angle.FULL_STRETCH.index..180f -> "FULL_STRETCH"
             currentAngle in 0f ..Angle.SQ_ATG.index -> "SQ_ATG"
             currentAngle in Angle.SQ_EXRA_DEEP.index..Angle.SQ_EXRA_DEEP.index -> "SQ_EXRA_DEEP"
             currentAngle in Angle.SQ_DEEP.index..Angle.SQ_SOLID.index -> "SQ_DEEP"
             currentAngle in Angle.SQ_SOLID.index..Angle.SQ_SHALLOW.index -> "SQ_SOLID"
-            currentAngle in Angle.SQ_SHALLOW.index..Angle.SQ_SHALLOW.index -> "SQ_SHALLOW"
             else -> "OUTSIDE"
         }
         if (currentSquatRange == "OUTSIDE")
@@ -459,11 +456,11 @@ class OverlayView(context: Context?, attrs: AttributeSet?) :
         return previousAngle in Angle.RST_DEADLIFT.index..Angle.DL_LOCKOUT.index
     }
 
-    private fun clear(){
+    fun clear(){
+        scoreData.clear()
         multiplierArray.clear()
         liftStarted = false
         determinedDirection = false
-        updateScore?.invoke(calculateLiftScore(multiplierArray), true)
     }
 
     private fun accumulateTimeMultiplier(canvas: Canvas){
@@ -601,13 +598,6 @@ class OverlayView(context: Context?, attrs: AttributeSet?) :
                 }
                 liftAngles.add(Entry(entryCount.toFloat(), currentAngle / 180f)) // normalize
                 entryCount += 1
-                cleared = false
-                }
-                else{
-                    if (!cleared) {
-                        clear()
-                        cleared = true
-                    }
                 }
             }
         }

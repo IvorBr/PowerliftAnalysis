@@ -66,7 +66,7 @@ class AnalyticsBottomSheetFragment : BottomSheetDialogFragment() {
             arrayListOf(Multiplier.SHALLOW),
             arrayListOf(Multiplier.ASS_TO_GRASS)
         )
-        processLifts(lifts)
+        processLifts(scoreData)
 
         return rootView
     }

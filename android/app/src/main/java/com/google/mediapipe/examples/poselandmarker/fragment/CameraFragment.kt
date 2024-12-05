@@ -181,11 +181,15 @@ class CameraFragment : Fragment(), PoseLandmarkerHelper.LandmarkerListener {
         modalBottomSheet.setScoreData(fragmentCameraBinding.overlay.scoreData)
         modalBottomSheet.setLiftType(fragmentCameraBinding.overlay.currentLift)
         modalBottomSheet.weight = fragmentCameraBinding.overlay.weight
+        fragmentCameraBinding.totalScoreText.text = ""
 
 
         modalBottomSheet.onDismissCallback = {
             fragmentCameraBinding.overlay.liftAngles.clear()
             val bottomNavigationView = fragmentCameraBinding.bottomNavigation
+            totalScore = 0
+            fragmentCameraBinding.overlay.clear()
+            fragmentCameraBinding.totalScoreText.text = ""
 
             fadeViews(fragmentCameraBinding.settingsFab,
                 fragmentCameraBinding.startButton,
