@@ -15,37 +15,28 @@
  */
 package com.google.mediapipe.examples.poselandmarker
 
-import android.animation.ValueAnimator
+
 import android.content.Context
-import android.graphics.Bitmap
-import android.graphics.BitmapFactory
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
-import android.graphics.PorterDuff
-import android.graphics.PorterDuffXfermode
-import android.graphics.RadialGradient
-import android.graphics.Shader
+import android.os.CountDownTimer
+import android.os.SystemClock
 import android.util.AttributeSet
 import android.view.View
 import androidx.core.content.ContextCompat
+import com.github.mikephil.charting.data.Entry
+import com.google.mediapipe.examples.poselandmarker.fragment.CameraFragment
 import com.google.mediapipe.tasks.vision.core.RunningMode
 import com.google.mediapipe.tasks.vision.poselandmarker.PoseLandmarker
 import com.google.mediapipe.tasks.vision.poselandmarker.PoseLandmarkerResult
-import kotlin.math.max
-import kotlin.math.min
-import android.os.CountDownTimer
-import android.os.SystemClock
-import com.github.mikephil.charting.data.Entry
-import java.util.ArrayDeque
-
-
-import kotlin.math.max
-import kotlin.math.min
+import kotlin.math.PI
 import kotlin.math.abs
 import kotlin.math.atan2
-import kotlin.math.PI
+import kotlin.math.max
+import kotlin.math.min
 import kotlin.math.round
+
 
 enum class LiftType {
     Squat,
@@ -168,6 +159,8 @@ class OverlayView(context: Context?, attrs: AttributeSet?) :
     private var timer: CountDownTimer? = null
     var isTimerRunning = false
 
+    var updateScore: ((Int, Boolean) -> Unit)? = null
+
     val liftAngles = ArrayList<Entry>()
     var weight = 10
 
@@ -262,8 +255,6 @@ class OverlayView(context: Context?, attrs: AttributeSet?) :
         canvas.drawText(text, x, y, paint)
     }
 
-
-
     private fun calculateAnglesDeadlifts(){
         // Calculate the knee angles for both left and right knees
         if(!determinedDirection){
@@ -281,10 +272,8 @@ class OverlayView(context: Context?, attrs: AttributeSet?) :
             finishedLift = leftButtcheekData.second && rightButtcheekData.second
 
         roundedButtcheekAngle = (round(averageButtcheekAngle*100)/100)
-
-
-
     }
+
     private fun calculateAnglesSquats() {
         // Calculate the knee angles for both left and right knees
         val rightKneeAngle = calculateAngle(rightHip, rightKnee, rightAnkle)
@@ -297,16 +286,19 @@ class OverlayView(context: Context?, attrs: AttributeSet?) :
         roundedKneeAngle = (round(averageKneeAngle * 100) / 100).toFloat()  // Round to 2 decimal places
     }
 
-    private fun handleMultiplier(multiplier: Multiplier){
+    private fun handleMultiplier(multiplier: Multiplier, finished: Boolean=false){
         multiplierArray.add(multiplier)
+        updateScore?.invoke(calculateLiftScore(multiplierArray), finished)
 
+        if (finished) {
+            scoreData.add(ArrayList(multiplierArray))
+            multiplierArray.clear()
+        }
     }
 
     private fun finishLift(){
         scoreAdded = true
-        handleMultiplier(determineMultiplier())
-        scoreData.add(ArrayList(multiplierArray))
-        multiplierArray.clear()
+        handleMultiplier(determineMultiplier(), true)
 
         if (currentLift != LiftType.Deadlift){
             deepestAngle = 180f
@@ -475,10 +467,6 @@ class OverlayView(context: Context?, attrs: AttributeSet?) :
             deepestAngle = roundedKneeAngle
         }
         accumulateTimes()
-    }
-
-    fun displayFeedback(){
-
     }
 
     private fun stopTimer() {
