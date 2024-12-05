@@ -180,7 +180,8 @@ class CameraFragment : Fragment(), PoseLandmarkerHelper.LandmarkerListener {
         modalBottomSheet.setDataPoints(fragmentCameraBinding.overlay.liftAngles)
         modalBottomSheet.setScoreData(fragmentCameraBinding.overlay.scoreData)
         modalBottomSheet.setLiftType(fragmentCameraBinding.overlay.currentLift)
-        modalBottomSheet.weight = fragmentCameraBinding.weightPicker.value
+        modalBottomSheet.weight = fragmentCameraBinding.overlay.weight
+
 
         modalBottomSheet.onDismissCallback = {
             fragmentCameraBinding.overlay.liftAngles.clear()
@@ -200,11 +201,21 @@ class CameraFragment : Fragment(), PoseLandmarkerHelper.LandmarkerListener {
         modalBottomSheet.show(childFragmentManager, AnalyticsBottomSheetFragment::class.java.simpleName)
     }
 
+    private var totalScore = 0
+    fun updateScore(liftScore: Int, updateTotal: Boolean) {
+        if (updateTotal) {
+            totalScore += liftScore
+            fragmentCameraBinding.totalScoreText.text = totalScore.toString()
+        }
+        displayText(listOf("+" + liftScore.toString())){}
+    }
+
     @SuppressLint("MissingPermission")
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         // Initialize our background executor
         backgroundExecutor = Executors.newSingleThreadExecutor()
+        fragmentCameraBinding.overlay.updateScore = ::updateScore
         setupNumberPicker()
         // Wait for the views to be properly laid out
         fragmentCameraBinding.viewFinder.post {
@@ -225,9 +236,10 @@ class CameraFragment : Fragment(), PoseLandmarkerHelper.LandmarkerListener {
             verticalProgress.x -= verticalProgress.width / 2.2f
         }
         startButton.setOnClickListener {
-            startCountdown(listOf("3", "2", "1", "GO!")){
+            displayText(listOf("3", "2", "1", "GO!")){
                 startTimer()
                 startDepthIndicator()
+                fragmentCameraBinding.overlay.weight = fragmentCameraBinding.weightPicker.value + 10
             }
 
             fadeViews(fragmentCameraBinding.settingsFab,
@@ -315,7 +327,7 @@ class CameraFragment : Fragment(), PoseLandmarkerHelper.LandmarkerListener {
                     handler.postDelayed(this, updateInterval.toLong())
 
                     if (progressStatus == circularIndicator.max - 60) {
-                        startCountdown(listOf("3", "2", "1", "FINISHED!")){}
+                        displayText(listOf("3", "2", "1", "FINISHED!")){}
                     }
                 } else {
                     fragmentCameraBinding.overlay.entryCount = 0
@@ -331,7 +343,7 @@ class CameraFragment : Fragment(), PoseLandmarkerHelper.LandmarkerListener {
         })
     }
 
-    private fun startCountdown(countdownValues: List<String>, onCountdownFinish: () -> Unit) {
+    private fun displayText(countdownValues: List<String>, onCountdownFinish: () -> Unit) {
         val countdownText = fragmentCameraBinding.countdownText
         countdownText.visibility = View.VISIBLE
 
