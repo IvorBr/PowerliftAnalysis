@@ -55,10 +55,10 @@ fun calculateTotalScore(liftScoreData : ArrayList<ArrayList<Multiplier>>, weight
 
 enum class Angle(val index: Float){
     FULL_STRETCH(150f),
-    SQ_ATG(40f),
-    SQ_EXRA_DEEP(60f),
-    SQ_DEEP(70f),
-    SQ_SOLID(80f),
+    SQ_ATG(50f),
+    SQ_EXRA_DEEP(70f),
+    SQ_DEEP(80f),
+    SQ_SOLID(90f),
     SQ_SHALLOW(120f),
 
     BP_DEEP(60f),
@@ -239,7 +239,7 @@ class OverlayView(context: Context?, attrs: AttributeSet?) :
         pointPaint.style = Paint.Style.FILL
     }
 
-    var standardTime: Int = 1
+    var standardTime: Int = 10
     var entryCount = 0
 
 
@@ -408,6 +408,9 @@ class OverlayView(context: Context?, attrs: AttributeSet?) :
 
     // Function to check Squat Range
     private fun checkSquatRange(): Boolean {
+        if (currentAngle > Angle.FULL_STRETCH.index)
+            return false
+
         val squatRange = when {
             previousAngle in Angle.FULL_STRETCH.index..180f -> "FULL_STRETCH"
             previousAngle in 0f..Angle.SQ_ATG.index -> "SQ_ATG"
@@ -432,6 +435,9 @@ class OverlayView(context: Context?, attrs: AttributeSet?) :
 
     // Function to check Bench Press Range
     private fun checkBenchPressRange(): Boolean {
+        if (currentAngle > Angle.FULL_STRETCH.index)
+            return false
+        
         val benchPressRange = when {
             previousAngle in 0f..Angle.BP_DEEP.index -> "BP_DEEP"
             previousAngle in Angle.BP_DEEP.index..Angle.BP_SOLID.index -> "BP_DEEP_TO_SOLID"
@@ -469,6 +475,7 @@ class OverlayView(context: Context?, attrs: AttributeSet?) :
             liftStarted = true
         }
         if (sameRange()) {
+            drawText(canvas, "$currentAngle, $previousAngle", 50f, 50f, Color.WHITE, 50f)
             if (System.currentTimeMillis() - targetStartTime  >= elapsedToGetMultiplier) {
                 handleMultiplier(determineMultiplier())
                 targetStartTime = System.currentTimeMillis()
