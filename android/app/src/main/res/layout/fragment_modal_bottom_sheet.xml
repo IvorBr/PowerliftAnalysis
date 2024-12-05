@@ -5,7 +5,7 @@
     android:layout_height="wrap_content"
     android:orientation="vertical"
     android:padding="12dp"
-    style="@style/Widget.Material3.BottomSheet">
+    style="@style/AppTheme" >
 
     <com.google.android.material.bottomsheet.BottomSheetDragHandleView
         android:id="@+id/drag_handle"
@@ -25,6 +25,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginBottom="12dp"
+        android:backgroundTint="?attr/colorOnSecondary"
         style="@style/Widget.Material3.CardView.Elevated">
 
         <com.github.mikephil.charting.charts.LineChart
@@ -34,6 +35,24 @@
             android:layout_margin="8dp" />
     </com.google.android.material.card.MaterialCardView>
 
+    <com.google.android.material.card.MaterialCardView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="12dp"
+        android:backgroundTint="?attr/colorOnSecondary"
+        style="@style/Widget.Material3.CardView.Elevated">
+
+        <TextView
+            android:id="@+id/total_score_modal_text"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textSize="24sp"
+            android:textStyle="bold"
+            android:padding="8dp"
+
+            android:textAlignment="center"/>
+    </com.google.android.material.card.MaterialCardView>
+
     <LinearLayout
         android:id="@+id/lift_cards_container"
         android:layout_width="match_parent"
@@ -41,42 +60,15 @@
         android:orientation="vertical"
         android:layout_marginBottom="16dp" />
 
-    <com.google.android.material.card.MaterialCardView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="12dp"
-        style="@style/Widget.Material3.CardView.Elevated">
-
-    <!-- Analytics content -->
-    <TextView
-        android:id="@+id/analytics_text"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Your analytics will appear here."
-        android:paddingBottom="16dp" />
-
-    <!-- Lift Count -->
-    <TextView
-        android:id="@+id/liftCountTextView"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:textSize="18sp"
-        android:layout_marginBottom="8dp" />
-
-    <!-- Average Time -->
-    <TextView
-        android:id="@+id/averageTimeTextView"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:textSize="18sp"
-        android:layout_marginBottom="16dp" />
-    </com.google.android.material.card.MaterialCardView>
-
     <Button
         android:id="@+id/dismiss_button"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="end"
-        android:text="Save" />
+        android:text="Save"
+        style="@style/Widget.Material3.Button.ElevatedButton"
+        app:backgroundTint="@color/mp_color_primary"
+        android:textColor="@color/text_primary_light"
+        />
 
 </LinearLayout>

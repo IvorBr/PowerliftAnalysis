@@ -1,10 +1,12 @@
 package com.google.mediapipe.examples.poselandmarker.fragment
 
 import android.content.DialogInterface
+import android.content.res.ColorStateList
 import android.graphics.Color
 import android.graphics.Typeface
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import android.os.Bundle
+import android.util.TypedValue
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -21,6 +23,8 @@ import com.google.android.material.card.MaterialCardView
 import com.google.mediapipe.examples.poselandmarker.Multiplier
 import com.google.mediapipe.examples.poselandmarker.LiftType
 import com.google.mediapipe.examples.poselandmarker.Angle
+import com.google.mediapipe.examples.poselandmarker.calculateLiftScore
+import com.google.mediapipe.examples.poselandmarker.calculateTotalScore
 
 class AnalyticsBottomSheetFragment : BottomSheetDialogFragment() {
     private lateinit var rootView: View
@@ -62,23 +66,9 @@ class AnalyticsBottomSheetFragment : BottomSheetDialogFragment() {
             arrayListOf(Multiplier.SHALLOW),
             arrayListOf(Multiplier.ASS_TO_GRASS)
         )
-        processLifts(scoreData)
-        setupLifts()
+        processLifts(lifts)
 
         return rootView
-    }
-
-
-    private fun setupLifts() {
-        val liftCountTextView: TextView = rootView.findViewById(R.id.liftCountTextView)
-        // Update the TextViews with the values
-    }
-
-    // Example method to calculate total lift time
-    private fun calculateTotalLiftTime(): Float {
-        // Replace this with the logic to calculate the total lift time
-        // For instance, summing the time deltas from your recorded data
-        return 120f // Placeholder value for demonstration
     }
 
     private fun processLifts(scoreData: ArrayList<ArrayList<Multiplier>>?) {
@@ -87,14 +77,20 @@ class AnalyticsBottomSheetFragment : BottomSheetDialogFragment() {
         // Clear existing cards if needed
         liftCardsContainer.removeAllViews()
 
-        var liftNumber = 1
         if (scoreData != null) {
+            var liftNumber = 1
+            val totalScore = calculateTotalScore(scoreData, weight)
+            rootView.findViewById<TextView>(R.id.total_score_modal_text).text = "Total Score $totalScore"
+            val typedValue = TypedValue()
+            context?.theme?.resolveAttribute(R.attr.cardColorCustom, typedValue, true)
+            val color = typedValue.data
             for (liftData in scoreData) { // Iterate through the list of lifts
                 val cardView = MaterialCardView(context, null, R.attr.cardStyle).apply {
                     layoutParams = LinearLayout.LayoutParams(
                         LinearLayout.LayoutParams.MATCH_PARENT,
                         LinearLayout.LayoutParams.WRAP_CONTENT
                     ).apply {
+                        backgroundTintList = ColorStateList.valueOf(color)
                         setMargins(0, 0, 0, 16) // Add spacing between cards
                     }
                 }
@@ -111,12 +107,14 @@ class AnalyticsBottomSheetFragment : BottomSheetDialogFragment() {
                 }
 
                 // Add a title TextView for the lift number
-                val titleTextView = TextView(context).apply {
+                val titleTextView = TextView(context, null, R.style.AppTheme).apply {
                     layoutParams = LinearLayout.LayoutParams(
                         LinearLayout.LayoutParams.MATCH_PARENT,
                         LinearLayout.LayoutParams.WRAP_CONTENT
                     )
-                    text = "Lift $liftNumber"
+
+                    val liftScore = calculateLiftScore(liftData, weight)
+                    text = "Score $liftScore"
                     textSize = 18f
                     setTypeface(typeface, Typeface.BOLD) // Make it bold
                     setTextColor(android.R.attr.textColorPrimary)
@@ -130,14 +128,13 @@ class AnalyticsBottomSheetFragment : BottomSheetDialogFragment() {
 
                 // Add a TextView for each multiplier in the lift data
                 for (multiplier in liftData) {
-                    val multiplierTextView = TextView(context).apply {
+                    val multiplierTextView = TextView(context, null, R.style.AppTheme).apply {
                         layoutParams = LinearLayout.LayoutParams(
                             LinearLayout.LayoutParams.MATCH_PARENT,
                             LinearLayout.LayoutParams.WRAP_CONTENT
                         )
                         text = multiplier.name.replace("_", " ") // Format enum names
                         textSize = 16f
-                        setTextColor(android.R.attr.textColorPrimary)
                     }
                     cardContentLayout.addView(multiplierTextView) // Add each multiplier TextView to the card
                 }
@@ -168,16 +165,18 @@ class AnalyticsBottomSheetFragment : BottomSheetDialogFragment() {
         lineChart.legend.isEnabled = false
         lineChart.description.isEnabled = false
 
-        lineChart.setTouchEnabled(false)
+        lineChart.setTouchEnabled(true)
         lineChart.setPinchZoom(false)
         lineChart.setScaleEnabled(false)
+        lineChart.isDragEnabled = true
         lineChart.setDrawBorders(false)
 
         val axisRight = lineChart.axisRight
-
         axisRight.setDrawLabels(false)
         axisRight.setDrawGridLines(false)
         axisRight.setDrawAxisLine(false)
+
+        // Add limit lines
 
         var fullRangeThreshold = 0f
         var fullStretchThreshold = 0f
@@ -194,20 +193,25 @@ class AnalyticsBottomSheetFragment : BottomSheetDialogFragment() {
             fullStretchThreshold = Angle.RST_DEADLIFT.index / 180f
         }
         val deepSquatLimit = LimitLine(fullRangeThreshold, "Full Range")
-        deepSquatLimit.lineColor = Color.RED
+        deepSquatLimit.lineColor = Color.GRAY
         deepSquatLimit.lineWidth = 2f
-        deepSquatLimit.textColor = Color.RED
+        deepSquatLimit.textColor = Color.GRAY
         deepSquatLimit.textSize = 12f
         axisRight.addLimitLine(deepSquatLimit)
 
         val fullyStretchedLimit = LimitLine(fullStretchThreshold, "Full Stretch")
-        fullyStretchedLimit.lineColor = Color.BLUE
+        fullyStretchedLimit.lineColor = Color.GRAY
         fullyStretchedLimit.lineWidth = 2f
-        fullyStretchedLimit.textColor = Color.BLUE
+        fullyStretchedLimit.textColor = Color.GRAY
         fullyStretchedLimit.textSize = 12f
         axisRight.addLimitLine(fullyStretchedLimit)
 
+        // Display only 20 data points at a time
+        lineChart.setVisibleXRangeMaximum(20f)
+        // Enable scrolling to view the rest of the data
+        lineChart.moveViewToX(0f)
         lineChart.invalidate()
     }
+
 
 }

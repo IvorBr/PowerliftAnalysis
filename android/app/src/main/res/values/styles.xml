@@ -28,8 +28,13 @@
         <item name="colorError">@color/mp_color_error</item>
         <!-- Status bar color. -->
         <item name="android:statusBarColor">?attr/colorPrimary</item>
+
+        <item name="backgroundTint">?attr/colorOnSecondary</item>
         <!-- Customize your theme here. -->
+
         <item name="cardStyle">@style/Widget.Material3.CardView.Elevated</item>
+        <item name="cardColorCustom">?attr/colorOnSecondary</item>
+
         <item name="android:textColor">?android:attr/textColorPrimary</item>
     </style>
 
