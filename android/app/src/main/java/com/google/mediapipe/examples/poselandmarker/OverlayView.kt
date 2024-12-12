@@ -320,13 +320,12 @@ class OverlayView(context: Context?, attrs: AttributeSet?) :
 
     private fun benchpress(canvas: Canvas){
         calculateAnglesBenchpress()
+        if (deepestAngle > currentAngle)
+            deepestAngle = currentAngle
+
         if (!scoreAdded && currentAngle >= Angle.FULL_STRETCH.index){
             finishLift()
         }
-
-        if (deepestAngle < currentAngle)
-            deepestAngle = currentAngle
-
         if (currentAngle < Angle.BP_SHALLOW.index){
             scoreAdded = false
         }
@@ -385,7 +384,7 @@ class OverlayView(context: Context?, attrs: AttributeSet?) :
                 else{
                     when {
                         deepestAngle < Angle.DL_LOCKOUT.index -> Multiplier.LOCKOUT
-                        else -> Multiplier.FAIL
+                        else -> Multiplier.LOCKOUT
                     }
                 }
             }
@@ -475,7 +474,6 @@ class OverlayView(context: Context?, attrs: AttributeSet?) :
             liftStarted = true
         }
         if (sameRange()) {
-            drawText(canvas, "$currentAngle, $previousAngle", 50f, 50f, Color.WHITE, 50f)
             if (System.currentTimeMillis() - targetStartTime  >= elapsedToGetMultiplier) {
                 handleMultiplier(determineMultiplier())
                 targetStartTime = System.currentTimeMillis()
